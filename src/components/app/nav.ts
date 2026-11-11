@@ -4,6 +4,7 @@ import {
   History,
   LayoutGrid,
   ListChecks,
+  NotebookPen,
   type LucideIcon,
   Sparkles,
   Timer,
@@ -32,6 +33,7 @@ export const navSections: { title: string; items: NavItem[] }[] = [
     title: "Personal",
     items: [
       { href: "/bookmark", label: "Bookmark", icon: Bookmark },
+      { href: "/catatan", label: "Catatan", icon: NotebookPen },
       { href: "/riwayat", label: "Riwayat", icon: History },
       { href: "/asisten", label: "Asisten AI", icon: Sparkles },
     ],

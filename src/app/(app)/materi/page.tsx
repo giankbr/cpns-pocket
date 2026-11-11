@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, ChevronRight, List } from "lucide-react";
+import type { Annotation } from "@/app/(app)/catatan/actions";
+import { Annotator } from "@/components/materi/annotator";
 import { MarkRead, type MaterialItem, MaterialList } from "@/components/materi/material-list";
 import { PracticeTopicButton } from "@/components/session/start-forms";
 import { Card, EmptyState } from "@/components/ui/card";
@@ -53,6 +55,16 @@ export default async function MateriPage({ searchParams }: { searchParams: Promi
     ? materials.map((material) => toItem(material, href({ bidang: subject.code, topik: topic.id, materi: material.id })))
     : [];
   const questionCount = topic ? (catalog.questionsPerTopic.get(topic.id) ?? 0) : 0;
+  const annotations = active
+    ? ((
+        await supabase
+          .from("annotations")
+          .select("id, material_id, kind, color, start_offset, end_offset, quote, note, created_at")
+          .eq("material_id", active.id)
+          .order("created_at")
+          .returns<Annotation[]>()
+      ).data ?? [])
+    : [];
 
   return (
     <>
@@ -143,9 +155,12 @@ export default async function MateriPage({ searchParams }: { searchParams: Promi
               {questionCount > 0 && <PracticeTopicButton topicId={topic.id} label="Latihan" />}
             </div>
 
-            <article className="mx-auto max-w-[72ch] p-4 sm:p-8">
-              <h1 className="mb-5 font-serif text-[32px] leading-9">{active.title}</h1>
-              <Markdown text={active.body} />
+            <article className="p-4 sm:p-6">
+              <h1 className="mb-1 font-serif text-[32px] leading-9">{active.title}</h1>
+              <p className="mb-5 text-xs text-subtle">Blok teks untuk memberi stabilo, garis bawah, coretan, atau catatan.</p>
+              <Annotator key={active.id} materialId={active.id} initial={annotations}>
+                <Markdown text={active.body} />
+              </Annotator>
             </article>
 
             <div className="grid gap-2 border-t border-line p-4 sm:grid-cols-2">
