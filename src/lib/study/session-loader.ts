@@ -34,6 +34,7 @@ export async function loadSession(supabase: SupabaseClient, sessionId: string) {
         duration_minutes?: number | null;
         points_per_correct?: number | null;
         question_count?: number;
+        passing_grades?: Partial<Record<SubjectCode, number>> | null;
       };
     }>();
 

@@ -25,6 +25,9 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
   const feedbackById = new Map(feedback.map((item) => [item.question_id, item]));
   const answerById = new Map(answers.map((answer) => [answer.question_id, answer]));
   const title = session.configuration.name ?? sessionLabel.mode[session.mode];
+  // Thresholds come from the exam preset (editable); absent for practice and custom exams.
+  const passing = session.configuration.passing_grades ?? null;
+  const passedAll = passing ? summary.bySubject.every((row) => row.score >= (passing[row.subject] ?? 0)) : null;
 
   return (
     <>
@@ -35,6 +38,13 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
             {formatDateTime(session.started_at)} · {sessionLabel.status[session.status]}
           </p>
         </div>
+        {passedAll !== null && (
+          <span
+            className={`rounded-lg px-2.5 py-1 text-sm ${passedAll ? "bg-success/10 text-success" : "bg-danger/10 text-danger"}`}
+          >
+            {passedAll ? "Lolos ambang batas" : "Belum lolos ambang batas"}
+          </span>
+        )}
         <Link
           href={session.mode === "exam" ? "/simulasi" : "/latihan"}
           className="btn-solid inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-[filter] duration-150 hover:brightness-110"
@@ -94,6 +104,7 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
                 <th className="py-2.5 pr-4 font-normal">Benar</th>
                 <th className="py-2.5 pr-4 font-normal">Salah</th>
                 <th className="py-2.5 pr-4 font-normal">Kosong</th>
+                {passing && <th className="py-2.5 pr-4 font-normal">Ambang batas</th>}
                 <th className="py-2.5 text-right font-normal">Skor</th>
               </tr>
             </thead>
@@ -109,6 +120,17 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
                   <td className="py-2.5 pr-4 tabular-nums">{row.subject === "TKP" ? "—" : row.correct}</td>
                   <td className="py-2.5 pr-4 tabular-nums">{row.subject === "TKP" ? "—" : row.incorrect}</td>
                   <td className="py-2.5 pr-4 tabular-nums">{row.unanswered}</td>
+                  {passing && (
+                    <td className="py-2.5 pr-4 tabular-nums">
+                      {passing[row.subject] == null ? (
+                        "—"
+                      ) : (
+                        <span className={row.score >= passing[row.subject]! ? "text-success" : "text-danger"}>
+                          {passing[row.subject]} · {row.score >= passing[row.subject]! ? "lolos" : "belum"}
+                        </span>
+                      )}
+                    </td>
+                  )}
                   <td className="py-2.5 text-right tabular-nums">
                     {row.score} <span className="text-subtle">/ {row.maxScore}</span>
                   </td>

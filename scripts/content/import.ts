@@ -1,6 +1,8 @@
 /**
  * Step 3: content/structured/*.json → Supabase (status 'draft').
- * Requires migration 0007_content_source.sql. Uses the service-role key (server-side only).
+ * Signs in as an admin user (CONTENT_ADMIN_EMAIL / CONTENT_ADMIN_PASSWORD in .env.local) and calls the
+ * admin-only import_content RPC (migration 0010), so no service-role key is needed.
+ * Flags: --write (insert), --include-flagged (also import questions whose source key looks wrong).
  * Usage: node scripts/content/import.ts            dry run: validation + counts
  *        node scripts/content/import.ts --write    insert
  */
@@ -11,17 +13,24 @@ import { contentHash, hasFlag, loadEnv, requireEnv, STRUCTURED_DIR, type Subject
 import { type Chunk, ChunkSchema } from "./schema.ts";
 
 const write = hasFlag("--write");
-const INSERT_BATCH = 100;
+const INSERT_BATCH = 40;
+const includeFlagged = hasFlag("--include-flagged");
+
+/** Topics used while structuring → official SKD blueprint topics (migration 0009). */
+const TOPIC_MAP: Record<string, string> = {
+  "TWK::Pancasila": "Pilar Negara",
+  "TWK::UUD 1945": "Pilar Negara",
+  "TWK::Bhinneka Tunggal Ika": "Pilar Negara",
+  "TWK::NKRI": "Pilar Negara",
+  "TWK::Sejarah dan Wawasan Kebangsaan": "Nasionalisme",
+  "TIU::Logika": "Verbal",
+  "TIU::Analitis": "Verbal",
+};
+const topicOf = (code: string, topic: string) => TOPIC_MAP[`${code}::${topic}`] ?? topic;
 
 type ChunkFile = { source: string; data: Chunk };
 type Question = Chunk["questions"][number];
-type Prepared = {
-  hash: string;
-  source: string;
-  topicId: string;
-  type: "objective" | "weighted";
-  question: Question;
-};
+
 
 function validate(question: Question): string | null {
   if (question.options.length !== 5) return "options != 5";
@@ -36,52 +45,43 @@ function validate(question: Question): string | null {
   return null;
 }
 
-async function fetchAll<T>(query: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>) {
-  const rows: T[] = [];
-  for (let from = 0; ; from += 1000) {
-    const { data, error } = await query(from, from + 999);
-    if (error) throw new Error(error.message);
-    rows.push(...(data ?? []));
-    if (!data || data.length < 1000) return rows;
-  }
-}
-
 async function main() {
   if (!existsSync(STRUCTURED_DIR)) {
-    console.error("No content/structured. Run content:collect first.");
+    console.error("No content/structured. Structure the documents first.");
     process.exit(1);
   }
   loadEnv();
-  const supabase = createClient(requireEnv("NEXT_PUBLIC_SUPABASE_URL"), requireEnv("SUPABASE_SERVICE_ROLE_KEY"), {
+  const supabase = createClient(requireEnv("NEXT_PUBLIC_SUPABASE_URL"), requireEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"), {
     auth: { persistSession: false },
   });
+  const { error: authError } = await supabase.auth.signInWithPassword({
+    email: requireEnv("CONTENT_ADMIN_EMAIL"),
+    password: requireEnv("CONTENT_ADMIN_PASSWORD"),
+  });
+  if (authError) throw new Error(`login: ${authError.message}`);
 
-  const { data: subjects, error } = await supabase.from("subjects").select("code, topics(id, name)");
+  const { data: subjects, error } = await supabase.from("subjects").select("code, topics(name)");
   if (error) throw new Error(error.message);
-  const topicIds = new Map<string, string>();
-  for (const subject of subjects as { code: SubjectCode; topics: { id: string; name: string }[] }[]) {
-    for (const topic of subject.topics) topicIds.set(`${subject.code}::${topic.name}`, topic.id);
+  const validTopics = new Set<string>();
+  for (const subject of subjects as { code: SubjectCode; topics: { name: string }[] }[]) {
+    for (const topic of subject.topics) validTopics.add(`${subject.code}::${topic.name}`);
   }
 
-  const existingQuestions = new Set(
-    (await fetchAll<{ content_hash: string | null }>((from, to) =>
-      supabase.from("questions").select("content_hash").not("content_hash", "is", null).range(from, to),
-    )).map((row) => row.content_hash),
-  );
-  const existingMaterials = new Set(
-    (await fetchAll<{ content_hash: string | null }>((from, to) =>
-      supabase.from("learning_materials").select("content_hash").not("content_hash", "is", null).range(from, to),
-    )).map((row) => row.content_hash),
-  );
-
-  const questions = new Map<string, Prepared>();
-  const materials = new Map<string, { topic_id: string; title: string; body: string; source: string; content_hash: string }>();
+  const questions = new Map<string, Record<string, unknown>>();
+  const materials = new Map<string, Record<string, unknown>>();
   const dropped = new Map<string, number>();
   const drop = (reason: string) => dropped.set(reason, (dropped.get(reason) ?? 0) + 1);
+  const bySubject = new Map<string, number>();
 
   const files = readdirSync(STRUCTURED_DIR).filter((name) => name.endsWith(".json") && !name.startsWith("_"));
   for (const name of files) {
-    const raw = JSON.parse(readFileSync(path.join(STRUCTURED_DIR, name), "utf8")) as ChunkFile;
+    let raw: ChunkFile;
+    try {
+      raw = JSON.parse(readFileSync(path.join(STRUCTURED_DIR, name), "utf8")) as ChunkFile;
+    } catch {
+      drop("unreadable chunk file");
+      continue;
+    }
     const parsed = ChunkSchema.safeParse(raw.data);
     if (!parsed.success) {
       drop("invalid chunk file");
@@ -94,38 +94,50 @@ async function main() {
         drop(problem);
         continue;
       }
-      const topicId = topicIds.get(`${question.subject_code}::${question.topic}`);
-      if (!topicId) {
+      if (!includeFlagged && question.explanation?.trimStart().startsWith("Catatan:")) {
+        drop("source key flagged as doubtful");
+        continue;
+      }
+      const topic = topicOf(question.subject_code, question.topic);
+      if (!validTopics.has(`${question.subject_code}::${topic}`)) {
         drop("topic not in subject");
         continue;
       }
       const hash = contentHash(question.prompt, ...question.options);
-      if (questions.has(hash) || existingQuestions.has(hash)) {
+      if (questions.has(hash)) {
         drop("duplicate question");
         continue;
       }
+      const weighted = question.subject_code === "TKP";
       questions.set(hash, {
-        hash,
+        subject_code: question.subject_code,
+        topic,
+        type: weighted ? "weighted" : "objective",
+        prompt: question.prompt.trim(),
+        explanation: question.explanation?.trim() ?? "",
+        difficulty: question.difficulty,
         source: raw.source,
-        topicId,
-        type: question.subject_code === "TKP" ? "weighted" : "objective",
-        question,
+        content_hash: hash,
+        options: question.options.map((option) => option.trim()),
+        ...(weighted ? { scores: question.tkp_scores } : { answer_index: question.answer_index }),
       });
+      bySubject.set(question.subject_code, (bySubject.get(question.subject_code) ?? 0) + 1);
     }
 
     for (const material of parsed.data.materials) {
-      const topicId = topicIds.get(`${material.subject_code}::${material.topic}`);
-      if (!topicId || !material.body_markdown.trim()) {
+      const topic = topicOf(material.subject_code, material.topic);
+      if (!validTopics.has(`${material.subject_code}::${topic}`) || !material.body_markdown.trim()) {
         drop("material without topic/body");
         continue;
       }
       const hash = contentHash(material.title, material.body_markdown);
-      if (materials.has(hash) || existingMaterials.has(hash)) {
+      if (materials.has(hash)) {
         drop("duplicate material");
         continue;
       }
       materials.set(hash, {
-        topic_id: topicId,
+        subject_code: material.subject_code,
+        topic,
         title: material.title.trim(),
         body: material.body_markdown.trim(),
         source: raw.source,
@@ -134,10 +146,6 @@ async function main() {
     }
   }
 
-  const bySubject = new Map<string, number>();
-  for (const { question } of questions.values()) {
-    bySubject.set(question.subject_code, (bySubject.get(question.subject_code) ?? 0) + 1);
-  }
   console.log(`chunk files  ${files.length}`);
   console.log(`questions    ${questions.size} (${[...bySubject].map(([code, n]) => `${code} ${n}`).join(", ") || "none"})`);
   console.log(`materials    ${materials.size}`);
@@ -148,54 +156,26 @@ async function main() {
     return;
   }
 
-  const prepared = [...questions.values()];
-  for (let i = 0; i < prepared.length; i += INSERT_BATCH) {
-    const slice = prepared.slice(i, i + INSERT_BATCH);
-    const { data: inserted, error: questionError } = await supabase
-      .from("questions")
-      .insert(
-        slice.map((item) => ({
-          topic_id: item.topicId,
-          type: item.type,
-          prompt: item.question.prompt.trim(),
-          explanation: item.question.explanation?.trim() || null,
-          difficulty: item.question.difficulty,
-          status: "draft",
-          source: item.source,
-          content_hash: item.hash,
-        })),
-      )
-      .select("id, content_hash");
-    if (questionError) throw new Error(`questions: ${questionError.message}`);
+  const totals = { questions: 0, materials: 0, skipped: 0 };
+  const send = async (payload: { p_questions?: unknown[]; p_materials?: unknown[] }) => {
+    const { data, error: rpcError } = await supabase.rpc("import_content", payload);
+    if (rpcError) throw new Error(`import_content: ${rpcError.message}`);
+    const result = data as typeof totals;
+    totals.questions += result.questions;
+    totals.materials += result.materials;
+    totals.skipped += result.skipped;
+  };
 
-    const idByHash = new Map((inserted ?? []).map((row) => [row.content_hash as string, row.id as string]));
-    const optionRows = slice.flatMap((item) =>
-      item.question.options.map((label, sort_order) => ({ question_id: idByHash.get(item.hash)!, label: label.trim(), sort_order })),
-    );
-    const { data: options, error: optionError } = await supabase
-      .from("question_options")
-      .insert(optionRows)
-      .select("id, question_id, sort_order");
-    if (optionError) throw new Error(`question_options: ${optionError.message}`);
-
-    const itemById = new Map(slice.map((item) => [idByHash.get(item.hash)!, item]));
-    const keyRows = (options ?? []).map((option) => {
-      const item = itemById.get(option.question_id as string)!;
-      return item.type === "weighted"
-        ? { option_id: option.id, is_correct: null, score: item.question.tkp_scores![option.sort_order as number] }
-        : { option_id: option.id, is_correct: option.sort_order === item.question.answer_index, score: null };
-    });
-    const { error: keyError } = await supabase.from("question_answer_keys").insert(keyRows);
-    if (keyError) throw new Error(`question_answer_keys: ${keyError.message}`);
-    console.log(`inserted questions ${Math.min(i + INSERT_BATCH, prepared.length)}/${prepared.length}`);
+  const questionRows = [...questions.values()];
+  for (let i = 0; i < questionRows.length; i += INSERT_BATCH) {
+    await send({ p_questions: questionRows.slice(i, i + INSERT_BATCH) });
+    console.log(`questions ${Math.min(i + INSERT_BATCH, questionRows.length)}/${questionRows.length}`);
   }
-
-  const materialRows = [...materials.values()].map((material) => ({ ...material, status: "draft" }));
+  const materialRows = [...materials.values()];
   for (let i = 0; i < materialRows.length; i += INSERT_BATCH) {
-    const { error: materialError } = await supabase.from("learning_materials").insert(materialRows.slice(i, i + INSERT_BATCH));
-    if (materialError) throw new Error(`learning_materials: ${materialError.message}`);
+    await send({ p_materials: materialRows.slice(i, i + INSERT_BATCH) });
   }
-  console.log(`inserted materials ${materialRows.length}. Review, then run content:publish.`);
+  console.log(`inserted ${totals.questions} questions, ${totals.materials} materials as draft; ${totals.skipped} already existed or skipped.`);
 }
 
 await main();
