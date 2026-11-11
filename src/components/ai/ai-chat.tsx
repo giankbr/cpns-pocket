@@ -4,6 +4,7 @@ import { type FormEvent, useEffect, useRef, useState } from "react";
 import { PictureInPicture2, Send, Sparkles, Trash2 } from "lucide-react";
 import { create } from "zustand";
 import { useMini } from "@/components/mini/mini-mode";
+import { Markdown } from "@/components/ui/markdown";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 
@@ -111,11 +112,11 @@ export function AiChat({ compact = false }: { compact?: boolean }) {
         {messages.map((message, index) => (
           <div
             key={`${message.role}-${index}`}
-            className={`rounded-xl px-3 py-2 leading-6 whitespace-pre-line ${compact ? "text-[13px]" : "text-sm"} ${
+            className={`rounded-xl px-3 py-2 leading-6 ${message.role === "user" ? "whitespace-pre-line" : ""} ${compact ? "text-[13px]" : "text-sm"} ${
               message.role === "user" ? `${compact ? "ml-6" : "ml-12"} bg-primary text-white` : `${compact ? "mr-6" : "mr-12"} bg-canvas text-ink`
             }`}
           >
-            {message.content}
+            {message.role === "assistant" ? <Markdown text={message.content} compact={compact} /> : message.content}
           </div>
         ))}
         {isLoading && <p className="mr-6 rounded-xl bg-canvas px-3 py-2 text-sm text-subtle">AI sedang berpikir…</p>}
