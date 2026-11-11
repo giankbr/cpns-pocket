@@ -100,6 +100,15 @@ Implement three main subjects:
 - Profesionalisme.
 - Anti-radikalisme.
 
+### Bahasa Inggris (ENG)
+Used in SKB for some agencies (TOEFL/TOEP-like format); not part of SKD.
+- Structure (grammar).
+- Written expression (error recognition).
+- Vocabulary (synonym & antonym).
+- Reading comprehension.
+
+Objective scoring (one correct answer). No listening section.
+
 Each subject contains topics, learning materials, and question collections.
 
 Allow questions to be filtered by:

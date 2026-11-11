@@ -21,3 +21,12 @@ export function getSupabaseAdminEnv() {
     serviceRoleKey: required("SUPABASE_SERVICE_ROLE_KEY"),
   };
 }
+
+export function getAnthropicEnv() {
+  const apiKey = required("ANTHROPIC_API_KEY");
+
+  return {
+    apiKey,
+    model: process.env.ANTHROPIC_MODEL || "claude-sonnet-4-5",
+  };
+}

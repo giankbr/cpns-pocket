@@ -1,5 +1,6 @@
 import { ArrowRight, BookOpen, Clock3, Flame, Target } from "lucide-react";
 import { requireUser } from "@/lib/auth/guards";
+import { AiChat } from "@/components/ai/ai-chat";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +34,7 @@ export default async function DashboardPage() {
           <p className="text-sm font-medium text-[#8a8981]">Selamat datang kembali</p>
           <h1 className="mt-2 text-4xl font-semibold tracking-tight">Hai, {firstName}.</h1>
           <p className="mt-3 max-w-xl text-[#77766e]">
-            Bangun ritme belajar yang konsisten untuk menghadapi SKD dengan lebih tenang.
+            Bangun ritme belajar yang konsisten untuk menghadapi SKD dan SKB dengan lebih tenang.
           </p>
         </section>
 
@@ -69,7 +70,7 @@ export default async function DashboardPage() {
             <h2 className="font-semibold">Progress per bidang</h2>
             <p className="mt-1 text-sm text-[#8a8981]">Belum ada data untuk ditampilkan.</p>
             <div className="mt-8 space-y-5">
-              {["TWK", "TIU", "TKP"].map((subject) => (
+              {["TWK", "TIU", "TKP", "B. Inggris"].map((subject) => (
                 <div key={subject}>
                   <div className="flex justify-between text-sm">
                     <span className="font-medium">{subject}</span>
@@ -82,6 +83,10 @@ export default async function DashboardPage() {
               ))}
             </div>
           </div>
+        </section>
+
+        <section className="mt-6">
+          <AiChat />
         </section>
       </div>
     </main>
