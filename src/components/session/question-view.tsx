@@ -41,6 +41,11 @@ export function QuestionView({ compact = false }: { compact?: boolean }) {
           Soal {state.index + 1} dari {state.questions.length}
           {!compact && question.topic && ` · ${question.topic}`}
         </span>
+        {question.appMade && (
+          <span className="shrink-0 rounded-md bg-canvas px-1.5 py-0.5 text-[11px] text-muted" title="Soal latihan buatan aplikasi, bukan soal resmi">
+            Buatan CPOCKET
+          </span>
+        )}
         <button
           type="button"
           onClick={() => void toggleBookmark(question.id)}

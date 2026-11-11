@@ -15,6 +15,8 @@ export type SessionQuestion = {
   difficulty: "easy" | "medium" | "hard";
   subject: SubjectCode;
   topic: string;
+  /** True for questions written for this app (not taken from a source document). */
+  appMade?: boolean;
   options: { id: string; label: string }[];
 };
 

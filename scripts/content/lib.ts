@@ -14,10 +14,14 @@ export const BATCHES = path.join(CONTENT, "batches.json");
 
 export type SubjectCode = "TWK" | "TIU" | "TKP" | "ENG";
 
-/** Mirrors supabase/migrations/0003_english_subject.sql + 0004_core_subjects.sql. */
+/** Mirrors supabase/migrations 0003, 0004 and 0009. */
 export const TOPICS: Record<SubjectCode, string[]> = {
-  TWK: ["Pancasila", "UUD 1945", "Bhinneka Tunggal Ika", "NKRI", "Sejarah dan Wawasan Kebangsaan"],
-  TIU: ["Verbal", "Numerik", "Logika", "Analitis", "Figural"],
+  // Official blueprint topics first; the rest are legacy names mapped at import (see import.ts TOPIC_MAP).
+  TWK: [
+    "Nasionalisme", "Integritas", "Bela Negara", "Pilar Negara", "Bahasa Indonesia",
+    "Pancasila", "UUD 1945", "Bhinneka Tunggal Ika", "NKRI", "Sejarah dan Wawasan Kebangsaan",
+  ],
+  TIU: ["Verbal", "Numerik", "Figural", "Logika", "Analitis"],
   TKP: [
     "Pelayanan Publik",
     "Jejaring Kerja",

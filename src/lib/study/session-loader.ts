@@ -8,6 +8,7 @@ type QuestionRow = {
     prompt: string;
     type: SessionQuestion["type"];
     difficulty: SessionQuestion["difficulty"];
+    source: string | null;
     topics: { name: string; subjects: { code: SubjectCode } | null } | null;
     question_options: { id: string; label: string; sort_order: number }[];
   } | null;
@@ -45,7 +46,7 @@ export async function loadSession(supabase: SupabaseClient, sessionId: string) {
     supabase
       .from("session_questions")
       .select(
-        "position, questions(id, prompt, type, difficulty, topics(name, subjects(code)), question_options(id, label, sort_order))",
+        "position, questions(id, prompt, type, difficulty, source, topics(name, subjects(code)), question_options(id, label, sort_order))",
       )
       .eq("session_id", sessionId)
       .order("position")
@@ -71,6 +72,7 @@ export async function loadSession(supabase: SupabaseClient, sessionId: string) {
             difficulty: question.difficulty,
             subject: question.topics?.subjects?.code ?? "TWK",
             topic: question.topics?.name ?? "",
+            appMade: question.source?.startsWith("Buatan CPOCKET") ?? false,
             options: [...question.question_options]
               .sort((a, b) => a.sort_order - b.sort_order)
               .map(({ id, label }) => ({ id, label })),
