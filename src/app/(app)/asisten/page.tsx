@@ -2,7 +2,7 @@ import { AiChat } from "@/components/ai/ai-chat";
 
 export default function AsistenPage() {
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="col-span-12">
       <AiChat />
     </div>
   );

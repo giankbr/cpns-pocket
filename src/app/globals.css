@@ -1,32 +1,91 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 :root {
-  --background: #f5f7fb;
-  --foreground: #161a23;
+  color-scheme: light;
+  --surface: #ffffff;
+  --canvas: #f5f7fb;
+  --tint: #f8faff;
+  --track: #eef2f9;
+  --line: #e8ebf2;
+  --line-strong: #d9deea;
+  --ink: #161a23;
+  --muted: #646b7b;
+  --subtle: #9aa1b1;
+  --primary: #1f6bff;
+  --primary-strong: #0b55e8;
+  --primary-top: #3d7eff;
+  --primary-soft: #edf3ff;
+  --success: #16a34a;
+  --danger: #dc2626;
+  --accent: #ff7a1a;
+  --shadow: rgb(16 24 40 / 0.1);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --surface: #12151c;
+  --canvas: #0a0c11;
+  --tint: #151a25;
+  --track: #1c2230;
+  --line: #222836;
+  --line-strong: #30374a;
+  --ink: #e9ecf2;
+  --muted: #a3aabb;
+  --subtle: #6d7588;
+  --primary: #4b8bff;
+  --primary-strong: #2f6fff;
+  --primary-top: #6aa0ff;
+  --primary-soft: #16213a;
+  --success: #34c46a;
+  --danger: #f05252;
+  --accent: #ff8a33;
+  --shadow: rgb(0 0 0 / 0.4);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-be-vietnam-pro);
+  --font-sans: var(--font-hanken), system-ui, sans-serif;
+  --font-serif: var(--font-instrument-serif), Georgia, serif;
 
-  --color-surface: #ffffff;
-  --color-canvas: #f5f7fb;
-  --color-line: #e8ebf2;
-  --color-line-strong: #d9deea;
-  --color-ink: #161a23;
-  --color-muted: #646b7b;
-  --color-subtle: #9aa1b1;
-  --color-primary: #1f6bff;
-  --color-primary-strong: #0b55e8;
-  --color-primary-soft: #edf3ff;
-  --color-accent: #ff7a1a;
-  --color-success: #16a34a;
-  --color-danger: #dc2626;
+  --color-background: var(--canvas);
+  --color-foreground: var(--ink);
+  --color-surface: var(--surface);
+  --color-canvas: var(--canvas);
+  --color-tint: var(--tint);
+  --color-track: var(--track);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-primary: var(--primary);
+  --color-primary-strong: var(--primary-strong);
+  --color-primary-top: var(--primary-top);
+  --color-primary-soft: var(--primary-soft);
+  --color-accent: var(--accent);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+}
+
+@layer components {
+  /* Solid primary surface: soft top-lit gradient, hairline highlight, 1px shadow. */
+  .btn-solid {
+    background-image: linear-gradient(to bottom, var(--primary-top), var(--primary));
+    color: #fff;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.22),
+      0 1px 2px var(--shadow);
+  }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-be-vietnam-pro), sans-serif;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-hanken), system-ui, sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.005em;
+  transition:
+    background-color 150ms,
+    color 150ms;
 }

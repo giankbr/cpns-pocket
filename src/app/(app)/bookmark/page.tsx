@@ -1,4 +1,5 @@
-import { Bookmark } from "lucide-react";
+import Link from "next/link";
+import { Bookmark, Play } from "lucide-react";
 import { Card, CardHeader, EmptyState } from "@/components/ui/card";
 import { requireSession } from "@/lib/auth/guards";
 import { type SubjectCode, subjectStyle } from "@/lib/study/queries";
@@ -28,9 +29,23 @@ export default async function BookmarkPage() {
   const bookmarks = (data ?? []).filter((row) => row.questions);
 
   return (
-    <Card className="mx-auto max-w-[1400px]">
-      <CardHeader icon={Bookmark} title="Soal tersimpan" description={`${bookmarks.length} soal`} />
-      <div className="p-5">
+    <Card className="col-span-12">
+      <CardHeader
+        icon={Bookmark}
+        title="Soal tersimpan"
+        description={`${bookmarks.length} soal`}
+        action={
+          bookmarks.length > 0 && (
+            <Link
+              href="/latihan?filter=bookmarked"
+              className="btn-solid inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-[filter] duration-150 hover:brightness-110"
+            >
+              <Play size={13} /> Latihan bookmark
+            </Link>
+          )
+        }
+      />
+      <div className="p-4">
         {bookmarks.length === 0 ? (
           <EmptyState title="Belum ada bookmark">Simpan soal saat latihan untuk diulang di sini.</EmptyState>
         ) : (
@@ -38,10 +53,10 @@ export default async function BookmarkPage() {
             {bookmarks.map(({ question_id, created_at, questions }) => {
               const code = questions?.topics?.subjects?.code;
               return (
-                <li key={question_id} className="flex gap-4 py-4">
+                <li key={question_id} className="flex gap-4 py-3">
                   {code && (
                     <span
-                      className="grid size-10 shrink-0 place-items-center rounded-xl text-xs font-semibold text-white"
+                      className="grid size-9 shrink-0 place-items-center rounded-lg text-[11px] text-white"
                       style={{ backgroundColor: subjectStyle[code].color }}
                     >
                       {code}

@@ -51,6 +51,7 @@ export function greetingFor(now = new Date()): string {
 }
 
 export function formatDuration(totalSeconds: number): string {
+  if (totalSeconds > 0 && totalSeconds < 60) return `${Math.round(totalSeconds)} d`;
   const minutes = Math.round(totalSeconds / 60);
   if (minutes < 60) return `${minutes} m`;
   const hours = Math.floor(minutes / 60);

@@ -26,6 +26,8 @@ export function getAnthropicEnv() {
 
   return {
     apiKey,
-    model: process.env.ANTHROPIC_MODEL || "claude-sonnet-4-5",
+    model: process.env.ANTHROPIC_MODEL || "claude-opus-5-5",
+    // Required when the API key is not scoped to a single workspace.
+    workspaceId: process.env.ANTHROPIC_WORKSPACE_ID || undefined,
   };
 }

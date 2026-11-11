@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/app/app-shell";
+import { ThemeToggle } from "@/components/app/theme";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 export default function LoginPage() {
@@ -30,19 +31,20 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="grid min-h-screen place-items-center bg-canvas px-6">
-      <section className="w-full max-w-md rounded-2xl border border-line bg-surface p-8 shadow-[0_24px_60px_-20px_rgba(22,26,35,0.12)]">
+    <main className="relative grid min-h-screen place-items-center bg-canvas px-6">
+      <ThemeToggle className="absolute top-4 right-4" />
+      <section className="w-full max-w-md rounded-2xl border border-line bg-surface p-8 shadow-[0_24px_60px_-20px_var(--shadow)]">
         <div className="mb-8">
           <div className="mb-6 flex items-center gap-2.5">
             <Logo />
-            <span className="text-xl font-semibold tracking-tight text-primary">CPNS Pocket</span>
+            <span className="font-serif lining-nums text-xl tracking-tight text-ink">CPNS Pocket</span>
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight text-ink">Masuk ke ruang belajar</h1>
+          <h1 className="font-serif lining-nums text-[32px] leading-10 tracking-tight text-ink">Masuk ke ruang belajar</h1>
           <p className="mt-2 text-sm leading-6 text-muted">Akses hanya tersedia untuk akun yang diundang.</p>
         </div>
 
         <form className="space-y-4" onSubmit={handleSubmit}>
-          <label className="block text-sm font-medium text-ink">
+          <label className="block text-sm text-ink">
             Email
             <input
               required
@@ -53,7 +55,7 @@ export default function LoginPage() {
               autoComplete="email"
             />
           </label>
-          <label className="block text-sm font-medium text-ink">
+          <label className="block text-sm text-ink">
             Password
             <input
               required
@@ -72,7 +74,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="h-11 w-full rounded-xl bg-linear-to-b from-[#3a80ff] to-primary-strong px-4 text-sm font-medium text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_8px_18px_-8px_rgba(31,107,255,0.8)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
+            className="h-11 w-full rounded-xl btn-solid px-4 text-sm font-medium transition-[filter] duration-150 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting ? "Memeriksa..." : "Masuk"}
           </button>

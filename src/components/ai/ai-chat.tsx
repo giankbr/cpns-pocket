@@ -47,20 +47,20 @@ export function AiChat() {
   }
 
   return (
-    <section className="flex h-[calc(100vh-124px)] min-h-[480px] flex-col rounded-2xl border border-line bg-surface p-5">
+    <section className="flex h-[calc(100vh-88px)] min-h-[420px] flex-col rounded-xl border border-line bg-surface p-4">
       <div className="flex items-start gap-3">
-        <span className="grid size-11 place-items-center rounded-xl bg-linear-to-b from-[#4f8dff] to-primary-strong text-white">
-          <Sparkles size={19} />
+        <span className="grid size-9 place-items-center rounded-lg btn-solid">
+          <Sparkles size={17} />
         </span>
         <div>
-          <h2 className="font-medium">Tanya AI</h2>
-          <p className="text-sm text-muted">
+          <h2 className="text-[15px]">Tanya AI</h2>
+          <p className="text-xs text-muted">
             Penjelasan konsep TWK, TIU, TKP, Bahasa Inggris, atau strategi belajar.
           </p>
         </div>
       </div>
 
-      <div className="mt-5 min-h-0 flex-1 space-y-3 overflow-y-auto">
+      <div className="mt-4 min-h-0 flex-1 space-y-3 overflow-y-auto">
         {messages.length === 0 && (
           <p className="rounded-xl border border-dashed border-line-strong px-4 py-5 text-sm leading-6 text-subtle">
             Contoh: &quot;Jelaskan perbedaan desentralisasi dan dekonsentrasi.&quot;
@@ -69,7 +69,7 @@ export function AiChat() {
         {messages.map((message, index) => (
           <div
             key={`${message.role}-${index}`}
-            className={`rounded-2xl px-4 py-3 text-sm leading-6 whitespace-pre-line ${
+            className={`rounded-xl px-3.5 py-2.5 text-sm leading-6 whitespace-pre-line ${
               message.role === "user"
                 ? "ml-12 bg-primary text-white"
                 : "mr-12 bg-canvas text-ink"
@@ -79,7 +79,7 @@ export function AiChat() {
           </div>
         ))}
         {isLoading && (
-          <p className="mr-12 rounded-2xl bg-canvas px-4 py-3 text-sm text-subtle">
+          <p className="mr-12 rounded-xl bg-canvas px-3.5 py-2.5 text-sm text-subtle">
             AI sedang berpikir...
           </p>
         )}
@@ -91,19 +91,19 @@ export function AiChat() {
         </p>
       )}
 
-      <form className="mt-5 flex gap-2" onSubmit={handleSubmit}>
+      <form className="mt-4 flex gap-2" onSubmit={handleSubmit}>
         <input
           value={input}
           onChange={(event) => setInput(event.target.value)}
           placeholder="Tulis pertanyaan..."
           maxLength={4000}
-          className="h-11 min-w-0 flex-1 rounded-xl border border-line-strong px-3 text-sm outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
+          className="h-10 min-w-0 flex-1 rounded-lg border border-line-strong px-3 text-sm outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
           aria-label="Pertanyaan untuk AI"
         />
         <button
           type="submit"
           disabled={isLoading || !input.trim()}
-          className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-medium text-white transition hover:bg-primary-strong disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex h-10 items-center gap-2 rounded-lg btn-solid px-4 text-sm font-medium transition-[filter] duration-150 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Send size={15} />
           Kirim

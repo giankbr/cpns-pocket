@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { type ReactNode, useState } from "react";
 import { LogOut, Menu, PanelLeftClose, PanelLeftOpen, Sparkles, X } from "lucide-react";
 import { findNavItem, navSections } from "./nav";
+import { ThemeToggle } from "./theme";
 
 type ShellUser = { name: string; email: string };
 
@@ -18,7 +19,7 @@ export function AppShell({ user, greeting, children }: { user: ShellUser; greeti
     <div className="flex min-h-screen bg-canvas">
       <aside
         className={`sticky top-0 hidden h-screen shrink-0 flex-col border-r border-line bg-surface transition-[width] duration-200 lg:flex ${
-          collapsed ? "w-[76px]" : "w-[264px]"
+          collapsed ? "w-16" : "w-60"
         }`}
       >
         <SidebarContent
@@ -35,7 +36,7 @@ export function AppShell({ user, greeting, children }: { user: ShellUser; greeti
             className="absolute inset-0 bg-ink/30"
             onClick={() => setMobileOpen(false)}
           />
-          <aside className="relative flex h-full w-[264px] flex-col bg-surface shadow-xl">
+          <aside className="relative flex h-full w-60 flex-col bg-surface shadow-xl">
             <SidebarContent
               pathname={pathname}
               collapsed={false}
@@ -47,37 +48,40 @@ export function AppShell({ user, greeting, children }: { user: ShellUser; greeti
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-[76px] items-center gap-3 border-b border-line bg-surface/90 px-4 backdrop-blur sm:px-6">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-2.5 border-b border-line bg-surface/90 px-4 backdrop-blur sm:px-5">
           <button
             aria-label="Buka menu"
-            className="grid size-10 place-items-center rounded-xl border border-line text-muted lg:hidden"
+            className="grid size-9 place-items-center rounded-lg border border-line text-muted lg:hidden"
             onClick={() => setMobileOpen(true)}
           >
-            <Menu size={18} />
+            <Menu size={17} />
           </button>
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-lg font-medium text-ink">{current?.label ?? "CPNS Pocket"}</h1>
-            <p className="truncate text-sm text-muted">
+            <h1 className="truncate font-serif lining-nums text-xl leading-6 tracking-tight text-ink">{current?.label ?? "CPNS Pocket"}</h1>
+            <p className="truncate text-xs text-muted">
               {greeting}, {user.name}!
             </p>
           </div>
+          <ThemeToggle />
           <Link
             href="/asisten"
             aria-label="Asisten AI"
-            className="grid size-10 place-items-center rounded-full border border-line text-muted transition hover:border-primary/40 hover:text-primary"
+            className="grid size-9 place-items-center rounded-full border border-line text-muted transition-colors duration-150 hover:border-primary/40 hover:text-primary"
           >
-            <Sparkles size={18} />
+            <Sparkles size={16} />
           </Link>
           <Link
             href="/profil"
             aria-label="Profil"
-            className="grid size-10 place-items-center rounded-full bg-linear-to-b from-[#4f8dff] to-primary-strong text-sm font-semibold text-white"
+            className="grid size-9 place-items-center rounded-full btn-solid text-sm"
           >
             {user.name.charAt(0).toUpperCase()}
           </Link>
         </header>
 
-        <main className="flex-1 p-4 sm:p-6">{children}</main>
+        <main className="flex-1 p-4 sm:p-5">
+          <div className="grid grid-cols-12 gap-4">{children}</div>
+        </main>
       </div>
     </div>
   );
@@ -98,20 +102,20 @@ function SidebarContent({
 }) {
   return (
     <>
-      <div className={`flex h-[76px] items-center border-b border-line px-4 ${collapsed ? "justify-center" : "justify-between"}`}>
+      <div className={`flex h-14 shrink-0 items-center border-b border-line px-3 ${collapsed ? "justify-center" : "justify-between"}`}>
         {!collapsed && (
-          <Link href="/dashboard" className="flex items-center gap-2.5">
+          <Link href="/dashboard" className="flex items-center gap-2 pl-1">
             <Logo />
-            <span className="text-xl font-semibold tracking-tight text-primary">CPNS Pocket</span>
+            <span className="font-serif lining-nums text-xl tracking-tight text-ink">CPNS Pocket</span>
           </Link>
         )}
         {onToggle && (
           <button
             aria-label={collapsed ? "Perluas sidebar" : "Ciutkan sidebar"}
             onClick={onToggle}
-            className="grid size-8 place-items-center rounded-lg border border-line text-subtle transition hover:text-ink"
+            className="grid size-7 place-items-center rounded-md border border-line text-subtle transition-colors duration-150 hover:text-ink"
           >
-            {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+            {collapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
           </button>
         )}
         {onClose && (
@@ -121,16 +125,16 @@ function SidebarContent({
         )}
       </div>
 
-      <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-5">
+      <nav className="flex-1 space-y-4 overflow-y-auto px-2.5 py-3">
         {navSections.map((section) => (
           <div key={section.title}>
             {!collapsed && (
-              <p className="mb-2 px-3 text-xs font-medium tracking-wide text-subtle uppercase">{section.title}</p>
+              <p className="mb-1 px-2.5 text-[11px] tracking-wider text-subtle uppercase">{section.title}</p>
             )}
-            <ul className="space-y-1">
+            <ul className="space-y-0.5">
               {section.items.map(({ href, label, icon: Icon, soon }) => {
                 const active = pathname === href || pathname.startsWith(`${href}/`);
-                const base = `flex h-11 items-center gap-3 rounded-xl px-3 text-[15px] transition ${
+                const base = `flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-sm transition-colors duration-150 ${
                   collapsed ? "justify-center" : ""
                 }`;
 
@@ -142,11 +146,11 @@ function SidebarContent({
                         title={`${label} (segera)`}
                         className={`${base} cursor-not-allowed text-subtle`}
                       >
-                        <Icon size={19} strokeWidth={1.7} />
+                        <Icon size={17} strokeWidth={1.8} />
                         {!collapsed && (
                           <>
                             <span className="flex-1">{label}</span>
-                            <span className="rounded-md bg-canvas px-1.5 py-0.5 text-[11px] font-medium">Segera</span>
+                            <span className="rounded bg-canvas px-1.5 py-px text-[10px]">Segera</span>
                           </>
                         )}
                       </span>
@@ -163,11 +167,11 @@ function SidebarContent({
                       aria-current={active ? "page" : undefined}
                       className={`${base} ${
                         active
-                          ? "bg-linear-to-b from-[#3a80ff] to-primary-strong font-medium text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_8px_18px_-8px_rgba(31,107,255,0.8)]"
+                          ? "btn-solid font-medium"
                           : "text-muted hover:bg-canvas hover:text-ink"
                       }`}
                     >
-                      <Icon size={19} strokeWidth={active ? 2 : 1.7} />
+                      <Icon size={17} strokeWidth={active ? 2 : 1.8} />
                       {!collapsed && <span>{label}</span>}
                     </Link>
                   </li>
@@ -178,14 +182,14 @@ function SidebarContent({
         ))}
       </nav>
 
-      <form action="/auth/sign-out" method="post" className="border-t border-line p-3">
+      <form action="/auth/sign-out" method="post" className="border-t border-line p-2.5">
         <button
           type="submit"
-          className={`flex h-11 w-full items-center gap-3 rounded-xl px-3 text-[15px] text-muted transition hover:bg-canvas hover:text-danger ${
+          className={`flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-sm text-muted transition-colors duration-150 hover:bg-canvas hover:text-danger ${
             collapsed ? "justify-center" : ""
           }`}
         >
-          <LogOut size={19} strokeWidth={1.7} />
+          <LogOut size={17} strokeWidth={1.8} />
           {!collapsed && "Keluar"}
         </button>
       </form>
@@ -195,7 +199,7 @@ function SidebarContent({
 
 export function Logo() {
   return (
-    <svg width="28" height="22" viewBox="0 0 28 22" aria-hidden className="text-primary">
+    <svg width="22" height="17" viewBox="0 0 28 22" aria-hidden className="text-primary">
       <rect x="0" y="0" width="28" height="5" rx="2.5" fill="currentColor" />
       <rect x="4" y="8.5" width="20" height="5" rx="2.5" fill="currentColor" opacity="0.75" />
       <rect x="0" y="17" width="28" height="5" rx="2.5" fill="currentColor" />

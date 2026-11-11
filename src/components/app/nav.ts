@@ -24,8 +24,8 @@ export const navSections: { title: string; items: NavItem[] }[] = [
     items: [
       { href: "/dashboard", label: "Dashboard", icon: LayoutGrid },
       { href: "/materi", label: "Materi", icon: BookOpenText },
-      { href: "/latihan", label: "Latihan Soal", icon: ListChecks, soon: true },
-      { href: "/simulasi", label: "Simulasi CAT", icon: Timer, soon: true },
+      { href: "/latihan", label: "Latihan Soal", icon: ListChecks },
+      { href: "/simulasi", label: "Simulasi CAT", icon: Timer },
     ],
   },
   {
@@ -42,7 +42,10 @@ export const navSections: { title: string; items: NavItem[] }[] = [
   },
 ];
 
+const sessionItem: NavItem = { href: "/sesi", label: "Sesi belajar", icon: ListChecks };
+
 export function findNavItem(pathname: string) {
+  if (pathname.startsWith("/sesi/")) return sessionItem;
   return navSections
     .flatMap((section) => section.items)
     .find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));

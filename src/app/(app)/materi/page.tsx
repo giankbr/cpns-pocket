@@ -13,13 +13,13 @@ export default async function MateriPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[1400px] space-y-5">
+    <div className="col-span-12 space-y-4">
       <nav aria-label="Bidang" className="flex flex-wrap gap-2">
         {catalog.subjects.map((subject) => (
           <a
             key={subject.code}
             href={`#${subject.code}`}
-            className="inline-flex items-center gap-2 rounded-xl border border-line bg-surface px-4 py-2 text-sm font-medium transition hover:border-primary hover:text-primary"
+            className="inline-flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-1.5 text-[13px] font-medium transition-colors duration-150 hover:border-primary hover:text-primary"
           >
             <span className="size-2 rounded-full" style={{ backgroundColor: subjectStyle[subject.code].color }} />
             {subjectStyle[subject.code].short}
@@ -29,33 +29,33 @@ export default async function MateriPage() {
 
       {catalog.subjects.map((subject) => (
         <Card key={subject.id} className="scroll-mt-24 overflow-hidden">
-          <div id={subject.code} className="flex items-center gap-4 border-b border-line p-5">
+          <div id={subject.code} className="flex items-center gap-4 border-b border-line p-4">
             <span
-              className="grid size-11 place-items-center rounded-xl text-xs font-semibold text-white"
+              className="grid size-9 place-items-center rounded-lg text-[11px] text-white"
               style={{ backgroundColor: subjectStyle[subject.code].color }}
             >
               {subject.code}
             </span>
             <div className="min-w-0 flex-1">
-              <h2 className="font-semibold">{subject.name}</h2>
-              {subject.description && <p className="text-sm text-muted">{subject.description}</p>}
+              <h2 className="text-[15px]">{subject.name}</h2>
+              {subject.description && <p className="text-xs text-muted">{subject.description}</p>}
             </div>
           </div>
 
-          <div className="grid gap-4 p-5 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4 p-4 md:grid-cols-2 xl:grid-cols-3">
             {subject.topics.map((topic) => {
               const materials = materialsByTopic.get(topic.id) ?? [];
               const questions = catalog.questionsPerTopic.get(topic.id) ?? 0;
 
               return (
-                <div key={topic.id} className="rounded-xl border border-line p-4">
+                <div key={topic.id} className="rounded-lg border border-line p-3">
                   <div className="flex items-start gap-3">
-                    <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary-soft text-primary">
-                      <BookOpenText size={17} />
+                    <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary-soft text-primary">
+                      <BookOpenText size={15} />
                     </span>
                     <div className="min-w-0">
-                      <h3 className="font-medium">{topic.name}</h3>
-                      <p className="text-sm text-subtle tabular-nums">
+                      <h3 className="text-sm">{topic.name}</h3>
+                      <p className="text-xs text-subtle tabular-nums">
                         {materials.length} materi · {questions} soal
                       </p>
                     </div>

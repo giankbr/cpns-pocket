@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { History } from "lucide-react";
 import { Card, CardHeader, EmptyState } from "@/components/ui/card";
 import { requireSession } from "@/lib/auth/guards";
@@ -15,9 +16,9 @@ export default async function RiwayatPage() {
   const { sessions } = await getActivity(supabase);
 
   return (
-    <Card className="mx-auto max-w-[1400px]">
+    <Card className="col-span-12">
       <CardHeader icon={History} title="Riwayat sesi" description={`${sessions.length} sesi tercatat`} />
-      <div className="p-5">
+      <div className="p-4">
         {sessions.length === 0 ? (
           <EmptyState title="Belum ada sesi">Riwayat latihan dan simulasi CAT akan muncul di sini.</EmptyState>
         ) : (
@@ -25,27 +26,34 @@ export default async function RiwayatPage() {
             <table className="w-full min-w-[640px] text-left text-sm">
               <thead className="text-subtle">
                 <tr className="border-b border-line">
-                  <th className="py-3 pr-4 font-medium">Mulai</th>
-                  <th className="py-3 pr-4 font-medium">Mode</th>
-                  <th className="py-3 pr-4 font-medium">Status</th>
-                  <th className="py-3 pr-4 font-medium">Durasi</th>
-                  <th className="py-3 text-right font-medium">Skor</th>
+                  <th className="py-2.5 pr-4 font-normal">Mulai</th>
+                  <th className="py-2.5 pr-4 font-normal">Mode</th>
+                  <th className="py-2.5 pr-4 font-normal">Status</th>
+                  <th className="py-2.5 pr-4 font-normal">Durasi</th>
+                  <th className="py-2.5 text-right font-normal">Skor</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
                 {sessions.map((session) => (
                   <tr key={session.id}>
-                    <td className="py-3.5 pr-4 text-muted">{formatDateTime(session.started_at)}</td>
-                    <td className="py-3.5 pr-4 font-medium">{sessionLabel.mode[session.mode]}</td>
-                    <td className="py-3.5 pr-4">
-                      <span className={`rounded-md px-2 py-1 text-xs font-medium ${statusStyle[session.status]}`}>
+                    <td className="py-2.5 pr-4 text-muted">{formatDateTime(session.started_at)}</td>
+                    <td className="py-2.5 pr-4">{sessionLabel.mode[session.mode]}</td>
+                    <td className="py-2.5 pr-4">
+                      <span className={`rounded-md px-2 py-1 text-xs ${statusStyle[session.status]}`}>
                         {sessionLabel.status[session.status]}
                       </span>
                     </td>
-                    <td className="py-3.5 pr-4 text-muted tabular-nums">
+                    <td className="py-2.5 pr-4 text-muted tabular-nums">
                       {session.duration_seconds ? formatDuration(session.duration_seconds) : "—"}
                     </td>
-                    <td className="py-3.5 text-right font-medium tabular-nums">{session.score ?? "—"}</td>
+                    <td className="py-2.5 text-right tabular-nums">
+                      <Link
+                        href={session.status === "in_progress" ? `/sesi/${session.id}` : `/sesi/${session.id}/hasil`}
+                        className="text-primary hover:underline"
+                      >
+                        {session.status === "in_progress" ? "Lanjutkan" : (session.score ?? "Lihat")}
+                      </Link>
+                    </td>
                   </tr>
                 ))}
               </tbody>

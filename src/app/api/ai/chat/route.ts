@@ -57,13 +57,20 @@ export async function POST(request: Request) {
   }
 
   try {
-    const anthropic = new Anthropic({ apiKey: anthropicConfig.apiKey });
+    const anthropic = new Anthropic({
+      apiKey: anthropicConfig.apiKey,
+      defaultHeaders: anthropicConfig.workspaceId
+        ? { "anthropic-workspace-id": anthropicConfig.workspaceId }
+        : undefined,
+    });
     const context = parsed.data.context
       ? `\n\nKonteks tambahan dari aplikasi:\n${parsed.data.context}`
       : "";
     const response = await anthropic.messages.create({
       model: anthropicConfig.model,
-      max_tokens: 800,
+      // Thinking shares this budget on current models; keep headroom so answers aren't cut off.
+      max_tokens: 16000,
+      output_config: { effort: "low" },
       system: `${systemPrompt}${context}`,
       messages: parsed.data.messages,
     });

@@ -68,9 +68,10 @@ export default async function DashboardPage() {
   const weekDelta = lastWeek > 0 ? percent(thisWeek - lastWeek, lastWeek) : null;
 
   return (
-    <div className="mx-auto max-w-[1400px] space-y-5">
-      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="col-span-12 grid grid-cols-12 gap-4">
+      <>
         <StatCard
+          className="col-span-12 sm:col-span-6 xl:col-span-3"
           icon={BookOpenCheck}
           label="Soal dijawab"
           value={String(answers.length)}
@@ -80,6 +81,7 @@ export default async function DashboardPage() {
           ]}
         />
         <StatCard
+          className="col-span-12 sm:col-span-6 xl:col-span-3"
           icon={Target}
           label="Akurasi"
           value={objective.length ? `${percent(correct, objective.length)}%` : "—"}
@@ -89,6 +91,7 @@ export default async function DashboardPage() {
           ]}
         />
         <StatCard
+          className="col-span-12 sm:col-span-6 xl:col-span-3"
           icon={Clock3}
           label="Waktu belajar"
           value={formatDuration(totalSeconds)}
@@ -98,6 +101,7 @@ export default async function DashboardPage() {
           ]}
         />
         <StatCard
+          className="col-span-12 sm:col-span-6 xl:col-span-3"
           icon={Flame}
           label="Streak belajar"
           value={`${studyStreak(answerDates, today)} hari`}
@@ -106,20 +110,20 @@ export default async function DashboardPage() {
             ["Tercapai", `${Math.min(percent(todayCount, DAILY_TARGET), 100)}%`],
           ]}
         />
-      </div>
+      </>
 
-      <div className="grid gap-5 xl:grid-cols-[1.55fr_1fr]">
-        <Card>
-          <div className="flex flex-wrap items-start gap-3 p-5 pb-0">
-            <span className="grid size-11 place-items-center rounded-xl bg-primary-soft text-primary">
-              <ChartNoAxesColumn size={20} strokeWidth={1.8} />
+      <>
+        <Card className="col-span-12 xl:col-span-8">
+          <div className="flex flex-wrap items-center gap-2.5 px-4 pt-4">
+            <span className="grid size-8 place-items-center rounded-lg bg-primary-soft text-primary">
+              <ChartNoAxesColumn size={16} strokeWidth={1.9} />
             </span>
             <div className="flex-1">
-              <p className="text-sm text-muted">Aktivitas 14 hari terakhir</p>
+              <p className="text-xs text-muted">Aktivitas 14 hari terakhir</p>
               <p className="flex flex-wrap items-baseline gap-2">
-                <span className="text-2xl font-semibold tracking-tight tabular-nums">{thisWeek} soal</span>
+                <span className="font-serif lining-nums text-[28px] leading-8 tracking-tight tabular-nums">{thisWeek} soal</span>
                 {weekDelta !== null && (
-                  <span className={`text-sm font-medium ${weekDelta >= 0 ? "text-success" : "text-danger"}`}>
+                  <span className={`text-sm ${weekDelta >= 0 ? "text-success" : "text-danger"}`}>
                     {weekDelta >= 0 ? "+" : ""}
                     {weekDelta}%
                   </span>
@@ -128,7 +132,7 @@ export default async function DashboardPage() {
               </p>
             </div>
           </div>
-          <div className="p-5">
+          <div className="p-4">
             <AreaChart
               data={series.map((day) => ({
                 label: new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", timeZone: "UTC" }).format(
@@ -140,9 +144,9 @@ export default async function DashboardPage() {
           </div>
         </Card>
 
-        <Card>
+        <Card className="col-span-12 xl:col-span-4">
           <CardHeader icon={TrendingUp} title="Progress per bidang" description="Soal unik dijawab dari bank soal" />
-          <div className="p-5">
+          <div className="p-4">
             <ProgressBars
               data={subjectRows.map((row) => ({
                 label: row.short,
@@ -153,16 +157,16 @@ export default async function DashboardPage() {
             />
           </div>
         </Card>
-      </div>
+      </>
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <Card>
+      <>
+        <Card className="col-span-12 lg:col-span-6">
           <CardHeader
             icon={History}
             title="Sesi terbaru"
             action={<SeeAll href="/riwayat" />}
           />
-          <div className="p-5">
+          <div className="p-4">
             {sessions.length === 0 ? (
               <EmptyState title="Belum ada sesi">Sesi latihan dan simulasi CAT akan tercatat di sini.</EmptyState>
             ) : (
@@ -170,22 +174,22 @@ export default async function DashboardPage() {
                 {sessions.slice(0, 4).map((session) => (
                   <li key={session.id}>
                     <Link
-                      href="/riwayat"
-                      className="group flex items-center gap-4 rounded-xl px-2 py-3 transition hover:bg-canvas"
+                      href={`/sesi/${session.id}`}
+                      className="group flex items-center gap-3 rounded-lg px-2 py-2 transition-colors duration-150 hover:bg-canvas"
                     >
-                      <span className="grid size-10 place-items-center rounded-full bg-primary-soft text-primary">
+                      <span className="grid size-9 place-items-center rounded-full bg-primary-soft text-primary">
                         {session.mode === "exam" ? <Clock3 size={18} /> : <BookOpenCheck size={18} />}
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm text-subtle">{formatDateTime(session.started_at)}</p>
-                        <p className="truncate font-medium">{sessionLabel.mode[session.mode]}</p>
+                        <p className="text-xs text-subtle">{formatDateTime(session.started_at)}</p>
+                        <p className="truncate text-sm">{sessionLabel.mode[session.mode]}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm text-subtle">{sessionLabel.status[session.status]}</p>
-                        <p className="font-medium tabular-nums">{session.score ?? "—"}</p>
+                        <p className="text-xs text-subtle">{sessionLabel.status[session.status]}</p>
+                        <p className="tabular-nums">{session.score ?? "—"}</p>
                       </div>
-                      <span className="grid size-9 place-items-center rounded-full text-ink transition group-hover:bg-primary group-hover:text-white">
-                        <ArrowRight size={17} />
+                      <span className="grid size-8 place-items-center rounded-full text-ink transition-colors duration-150 group-hover:bg-primary group-hover:text-white">
+                        <ArrowRight size={15} />
                       </span>
                     </Link>
                   </li>
@@ -195,26 +199,26 @@ export default async function DashboardPage() {
           </div>
         </Card>
 
-        <Card>
+        <Card className="col-span-12 lg:col-span-6">
           <CardHeader icon={Library} title="Bidang ujian" action={<SeeAll href="/materi" />} />
-          <ul className="divide-y divide-line p-5">
+          <ul className="divide-y divide-line p-4">
             {subjectRows.map((row) => (
               <li key={row.id}>
                 <Link
                   href={`/materi#${row.code}`}
-                  className="group flex items-center gap-4 rounded-xl px-2 py-3 transition hover:bg-primary-soft/60"
+                  className="group flex items-center gap-3 rounded-lg px-2 py-2 transition-colors duration-150 hover:bg-primary-soft/60"
                 >
                   <span
-                    className="grid size-10 place-items-center rounded-xl text-xs font-semibold text-white"
+                    className="grid size-9 place-items-center rounded-lg text-[11px] text-white"
                     style={{ backgroundColor: row.color }}
                   >
                     {row.code}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium">{row.name}</p>
-                    <p className="text-sm text-subtle">{row.topics.length} topik</p>
+                    <p className="truncate text-sm">{row.name}</p>
+                    <p className="text-xs text-subtle">{row.topics.length} topik</p>
                   </div>
-                  <span className="rounded-lg border border-line px-3 py-1.5 text-sm text-muted tabular-nums transition group-hover:border-primary group-hover:bg-primary group-hover:text-white">
+                  <span className="rounded-md border border-line px-2.5 py-1 text-xs text-muted tabular-nums transition-colors duration-150 group-hover:border-primary group-hover:bg-primary group-hover:text-white">
                     {row.questionCount} soal
                   </span>
                 </Link>
@@ -222,13 +226,13 @@ export default async function DashboardPage() {
             ))}
           </ul>
         </Card>
-      </div>
+      </>
 
-      <div className="grid gap-5 xl:grid-cols-[1.55fr_1fr]">
-        <Card>
+      <>
+        <Card className="col-span-12 xl:col-span-8">
           <CardHeader icon={PieChart} title="Distribusi latihan" description="Jawaban per bidang" />
-          <div className="grid items-center gap-6 p-5 md:grid-cols-[1fr_220px]">
-            <div className="space-y-5">
+          <div className="grid items-center gap-6 p-4 md:grid-cols-[1fr_200px]">
+            <div className="space-y-4">
               <Donut
                 data={subjectRows.map((row) => ({
                   label: row.short,
@@ -237,7 +241,7 @@ export default async function DashboardPage() {
                 }))}
                 center={
                   <div>
-                    <p className="text-2xl font-semibold tabular-nums">{answers.length}</p>
+                    <p className="font-serif lining-nums text-[28px] leading-8 tracking-tight tabular-nums">{answers.length}</p>
                     <p className="text-xs text-subtle">jawaban</p>
                   </div>
                 }
@@ -250,7 +254,7 @@ export default async function DashboardPage() {
                 }))}
               />
             </div>
-            <div className="space-y-4 rounded-2xl bg-canvas p-4">
+            <div className="space-y-3 rounded-xl bg-canvas p-3.5">
               <p className="text-sm text-muted">Ringkasan konten</p>
               <MiniStat icon={Layers} label="Topik" value={String(topicTotal)} />
               <MiniStat icon={BookOpenCheck} label="Soal tersedia" value={String(questionTotal)} />
@@ -260,15 +264,15 @@ export default async function DashboardPage() {
           </div>
         </Card>
 
-        <Card>
+        <Card className="col-span-12 xl:col-span-4">
           <CardHeader icon={Layers} title="Bank soal" description="Soal terbit per bidang" />
-          <div className="space-y-6 p-5">
+          <div className="space-y-4 p-4">
             <Donut
               data={subjectRows.map((row) => ({ label: row.short, value: row.questionCount, color: row.color }))}
               center={
                 questionTotal ? (
                   <div>
-                    <p className="text-2xl font-semibold tabular-nums">{questionTotal}</p>
+                    <p className="font-serif lining-nums text-[28px] leading-8 tracking-tight tabular-nums">{questionTotal}</p>
                     <p className="text-xs text-subtle">soal</p>
                   </div>
                 ) : (
@@ -279,7 +283,7 @@ export default async function DashboardPage() {
             <Legend data={subjectRows.map((row) => ({ label: row.short, value: row.questionCount, color: row.color }))} />
           </div>
         </Card>
-      </div>
+      </>
     </div>
   );
 }
@@ -288,9 +292,9 @@ function SeeAll({ href }: { href: string }) {
   return (
     <Link
       href={href}
-      className="inline-flex items-center gap-1.5 rounded-xl border border-line px-3 py-2 text-sm font-medium text-ink transition hover:border-primary hover:text-primary"
+      className="inline-flex items-center gap-1 rounded-lg border border-line px-2.5 py-1.5 text-xs font-medium text-ink transition-colors duration-150 hover:border-primary hover:text-primary"
     >
-      Lihat semua <ArrowUpRight size={15} />
+      Lihat semua <ArrowUpRight size={13} />
     </Link>
   );
 }
@@ -298,12 +302,12 @@ function SeeAll({ href }: { href: string }) {
 function MiniStat({ icon: Icon, label, value }: { icon: typeof Layers; label: string; value: string }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="grid size-10 place-items-center rounded-xl bg-linear-to-b from-[#4f8dff] to-primary-strong text-white">
-        <Icon size={17} />
+      <span className="grid size-8 place-items-center rounded-lg btn-solid">
+        <Icon size={15} />
       </span>
       <div>
         <p className="text-xs text-muted">{label}</p>
-        <p className="font-semibold tabular-nums">{value}</p>
+        <p className="text-sm tabular-nums">{value}</p>
       </div>
     </div>
   );
