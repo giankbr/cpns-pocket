@@ -11,10 +11,6 @@
   --font-sans: var(--font-be-vietnam-pro);
 }
 
-* {
-  box-sizing: border-box;
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
