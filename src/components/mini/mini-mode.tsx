@@ -1,6 +1,6 @@
 "use client";
 
-import { LoaderCircle, MessageCircle, Play, Target, X } from "lucide-react";
+import { MessageCircle, Target, X } from "lucide-react";
 import {
   createContext,
   type ReactNode,
@@ -10,12 +10,10 @@ import {
   useMemo,
   useState,
   useSyncExternalStore,
-  useTransition,
 } from "react";
 import { createPortal } from "react-dom";
-import { useRouter } from "next/navigation";
-import { startDailyChallenge } from "@/app/(app)/sesi/actions";
 import { AiChat } from "@/components/ai/ai-chat";
+import { MiniPractice, type MiniPracticeState } from "./mini-practice";
 
 type DocumentPictureInPicture = {
   requestWindow(options?: { width?: number; height?: number }): Promise<Window>;
@@ -42,6 +40,9 @@ type MiniContextValue = {
   sessionSlot: HTMLElement | null;
   hasSession: boolean;
   setHasSession: (value: boolean) => void;
+  /** Standalone practice run inside the mini window (used when no session page is open). */
+  practice: MiniPracticeState;
+  setPractice: (state: MiniPracticeState) => void;
 };
 
 const MiniContext = createContext<MiniContextValue | null>(null);
@@ -113,6 +114,7 @@ export function MiniModeProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [sessionSlot, setSessionSlot] = useState<HTMLElement | null>(null);
   const [hasSession, setHasSession] = useState(false);
+  const [practice, setPractice] = useState<MiniPracticeState>({ stage: "intro" });
 
   const open = useCallback(
     async (next?: MiniTab) => {
@@ -159,8 +161,10 @@ export function MiniModeProvider({ children }: { children: ReactNode }) {
       sessionSlot,
       hasSession,
       setHasSession,
+      practice,
+      setPractice,
     }),
-    [supported, pipWindow, inlineOpen, tab, open, close, error, sessionSlot, hasSession],
+    [supported, pipWindow, inlineOpen, tab, open, close, error, sessionSlot, hasSession, practice],
   );
 
   const hub = <MiniHub value={value} onSlot={setSessionSlot} />;
@@ -170,7 +174,8 @@ export function MiniModeProvider({ children }: { children: ReactNode }) {
       {children}
       {pipWindow && createPortal(hub, pipWindow.document.body)}
       {!pipWindow && inlineOpen && (
-        <div className="fixed right-4 bottom-4 z-40 h-[440px] max-h-[calc(100dvh-2rem)] w-[340px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-line bg-surface shadow-[0_24px_60px_-20px_var(--shadow)]">
+        // Bottom sheet on phones, floating 340×440 card from `sm` up.
+        <div className="fixed inset-x-2 bottom-2 z-40 h-[70dvh] overflow-hidden rounded-2xl border border-line bg-surface shadow-[0_24px_60px_-20px_var(--shadow)] sm:inset-x-auto sm:right-4 sm:bottom-4 sm:h-[440px] sm:max-h-[calc(100dvh-2rem)] sm:w-[340px]">
           {hub}
         </div>
       )}
@@ -181,80 +186,47 @@ export function MiniModeProvider({ children }: { children: ReactNode }) {
 function MiniHub({ value, onSlot }: { value: MiniContextValue; onSlot: (element: HTMLElement | null) => void }) {
   const tabs: { id: MiniTab; label: string; icon: typeof Target }[] = [
     { id: "soal", label: "Soal", icon: Target },
-    { id: "ai", label: "Tanya AI", icon: MessageCircle },
+    { id: "ai", label: "AI", icon: MessageCircle },
   ];
 
   return (
-    <div className="flex h-full flex-col gap-2.5 p-3">
+    <div className="flex h-full min-h-0 flex-col gap-2 p-2.5">
       <div className="flex items-center gap-2">
-        <span className="font-serif text-lg leading-none">Daily Challenge</span>
+        <span className="min-w-0 truncate font-serif text-[17px] leading-none">Daily Challenge</span>
         <span className="flex-1" />
+        <div role="tablist" className="flex shrink-0 gap-0.5 rounded-md bg-canvas p-0.5">
+          {tabs.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={value.tab === id}
+              aria-label={id === "ai" ? "Tanya AI" : label}
+              onClick={() => value.setTab(id)}
+              className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-[11px] transition-colors duration-150 ${
+                value.tab === id ? "bg-surface text-ink shadow-[0_1px_2px_var(--shadow)]" : "text-muted hover:text-ink"
+              }`}
+            >
+              <Icon size={12} /> {label}
+            </button>
+          ))}
+        </div>
         <button
           type="button"
           onClick={value.close}
           aria-label="Tutup mode mini"
-          className="grid size-7 place-items-center rounded-md text-subtle transition-colors duration-150 hover:text-ink"
+          className="grid size-6 shrink-0 place-items-center rounded-md text-subtle transition-colors duration-150 hover:text-ink"
         >
-          <X size={16} />
+          <X size={15} />
         </button>
       </div>
 
-      <div role="tablist" className="grid grid-cols-2 gap-1 rounded-lg bg-canvas p-1">
-        {tabs.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            type="button"
-            role="tab"
-            aria-selected={value.tab === id}
-            onClick={() => value.setTab(id)}
-            className={`inline-flex items-center justify-center gap-1.5 rounded-md py-1 text-xs transition-colors duration-150 ${
-              value.tab === id ? "bg-surface text-ink shadow-[0_1px_2px_var(--shadow)]" : "text-muted hover:text-ink"
-            }`}
-          >
-            <Icon size={13} /> {label}
-          </button>
-        ))}
-      </div>
-
       <div className="relative min-h-0 flex-1">
-        {/* Always mounted so an open session can keep its portal target. */}
+        {/* Always mounted so an open session page can keep its portal target. */}
         <div ref={onSlot} className={`h-full ${value.tab === "soal" && value.hasSession ? "" : "hidden"}`} />
-        {value.tab === "soal" && !value.hasSession && <DailyStart />}
+        {value.tab === "soal" && !value.hasSession && <MiniPractice state={value.practice} setState={value.setPractice} />}
         {value.tab === "ai" && <AiChat compact />}
       </div>
-    </div>
-  );
-}
-
-/** No session open: start today's short challenge from questions not answered yet. */
-function DailyStart() {
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
-
-  function start() {
-    setError(null);
-    startTransition(async () => {
-      const result = await startDailyChallenge();
-      if ("error" in result) setError(result.error);
-      // The main window navigates; this floating window then shows the session.
-      else router.push(`/sesi/${result.id}`);
-    });
-  }
-
-  return (
-    <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-      <p className="font-serif text-2xl leading-7">5 soal hari ini</p>
-      <p className="max-w-60 text-xs leading-5 text-muted">Soal acak yang belum pernah kamu jawab. Kerjakan langsung dari jendela ini.</p>
-      <button
-        type="button"
-        onClick={start}
-        disabled={pending}
-        className="btn-solid inline-flex h-9 items-center gap-2 rounded-lg px-4 text-sm font-medium transition-[filter] duration-150 hover:brightness-110 disabled:opacity-60"
-      >
-        {pending ? <LoaderCircle size={15} className="animate-spin" /> : <Play size={15} />} Mulai
-      </button>
-      {error && <p className="text-xs text-danger">{error}</p>}
     </div>
   );
 }

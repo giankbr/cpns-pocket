@@ -12,7 +12,7 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "CPNS Pocket",
+  title: "CPOCKET",
   description: "Ruang belajar pribadi untuk persiapan CPNS.",
 };
 

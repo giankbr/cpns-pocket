@@ -1,5 +1,5 @@
 {
-  "name": "cpns-pocket",
+  "name": "cpocket",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -8,6 +8,12 @@
     "start": "next start",
     "lint": "eslint",
     "prepare": "husky",
+    "content:extract": "node scripts/content/extract.ts",
+    "content:estimate": "node scripts/content/structure.ts --estimate",
+    "content:submit": "node scripts/content/structure.ts --submit",
+    "content:collect": "node scripts/content/structure.ts --collect",
+    "content:import": "node scripts/content/import.ts",
+    "content:publish": "node scripts/content/publish.ts",
     "test": "node --test \"src/**/*.test.ts\""
   },
   "dependencies": {

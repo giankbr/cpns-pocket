@@ -37,7 +37,7 @@ export default function LoginPage() {
         <div className="mb-8">
           <div className="mb-6 flex items-center gap-2.5">
             <Logo />
-            <span className="font-serif lining-nums text-xl tracking-tight text-ink">CPNS Pocket</span>
+            <span className="font-serif lining-nums text-xl tracking-tight text-ink">CPOCKET</span>
           </div>
           <h1 className="font-serif lining-nums text-[32px] leading-10 tracking-tight text-ink">Masuk ke ruang belajar</h1>
           <p className="mt-2 text-sm leading-6 text-muted">Akses hanya tersedia untuk akun yang diundang.</p>

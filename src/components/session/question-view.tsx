@@ -29,7 +29,7 @@ export function QuestionView({ compact = false }: { compact?: boolean }) {
   }
 
   return (
-    <div className={compact ? "space-y-3" : "space-y-5"}>
+    <div className={compact ? "space-y-2" : "space-y-5"}>
       <div className="flex items-center gap-2">
         <span
           className="rounded-md px-1.5 py-0.5 text-[11px] text-white"
@@ -46,19 +46,19 @@ export function QuestionView({ compact = false }: { compact?: boolean }) {
           onClick={() => void toggleBookmark(question.id)}
           aria-pressed={bookmarked}
           aria-label={bookmarked ? "Hapus bookmark" : "Simpan ke bookmark"}
-          className={`grid size-8 place-items-center rounded-lg transition-colors duration-150 ${
+          className={`grid place-items-center rounded-lg transition-colors duration-150 ${compact ? "size-6" : "size-8"} ${
             bookmarked ? "text-primary" : "text-subtle hover:text-ink"
           }`}
         >
-          {bookmarked ? <BookmarkCheck size={17} /> : <Bookmark size={17} />}
+          {bookmarked ? <BookmarkCheck size={compact ? 15 : 17} /> : <Bookmark size={compact ? 15 : 17} />}
         </button>
       </div>
 
-      <p className={`whitespace-pre-line text-ink ${compact ? "text-sm leading-6" : "text-[17px] leading-7"}`}>
+      <p className={`whitespace-pre-line text-ink ${compact ? "text-[13px] leading-5" : "text-[17px] leading-7"}`}>
         {question.prompt}
       </p>
 
-      <ul className={compact ? "space-y-1.5" : "space-y-2"} role="radiogroup" aria-label="Pilihan jawaban">
+      <ul className={compact ? "space-y-1" : "space-y-2"} role="radiogroup" aria-label="Pilihan jawaban">
         {question.options.map((option, index) => {
           const key = keyById.get(option.id);
           const selected = chosen === option.id;
@@ -79,13 +79,13 @@ export function QuestionView({ compact = false }: { compact?: boolean }) {
                 aria-checked={selected}
                 disabled={locked && !selected}
                 onClick={() => pick(option.id)}
-                className={`flex w-full items-start gap-3 rounded-xl border text-left transition-colors duration-150 disabled:cursor-default ${tone} ${
-                  compact ? "px-2.5 py-2 text-[13px]" : "px-3.5 py-3 text-[15px]"
+                className={`flex w-full items-start border text-left transition-colors duration-150 disabled:cursor-default ${tone} ${
+                  compact ? "gap-2 rounded-lg px-2 py-1.5 text-[12.5px] leading-5" : "gap-3 rounded-xl px-3.5 py-3 text-[15px]"
                 }`}
               >
                 <span
-                  className={`grid shrink-0 place-items-center rounded-md border text-xs ${
-                    compact ? "size-5" : "size-6"
+                  className={`grid shrink-0 place-items-center rounded-md border ${
+                    compact ? "size-5 text-[11px]" : "size-6 text-xs"
                   } ${
                     correct
                       ? "border-success bg-success text-white"
@@ -111,14 +111,14 @@ export function QuestionView({ compact = false }: { compact?: boolean }) {
       </ul>
 
       {state.error && (
-        <p role="alert" className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">
+        <p role="alert" className={`rounded-lg bg-danger/10 text-danger ${compact ? "px-2 py-1.5 text-xs" : "px-3 py-2 text-sm"}`}>
           {state.error}
         </p>
       )}
 
-      {feedback && !compact && (
-        <div className="rounded-xl bg-canvas p-4 text-sm leading-6">
-          <p className="mb-1 text-xs tracking-wide text-subtle uppercase">
+      {feedback && (
+        <div className={`bg-canvas ${compact ? "rounded-lg px-2.5 py-2 text-xs leading-5" : "rounded-xl p-4 text-sm leading-6"}`}>
+          <p className={`mb-1 tracking-wide text-subtle uppercase ${compact ? "text-[10px]" : "text-xs"}`}>
             {isWeighted
               ? `Skor jawabanmu: ${keyById.get(chosen ?? "")?.score ?? 0} dari 5`
               : keyById.get(chosen ?? "")?.is_correct
@@ -135,7 +135,7 @@ export function QuestionView({ compact = false }: { compact?: boolean }) {
           onClick={() => dispatch({ type: "prev" })}
           disabled={state.index === 0}
           aria-label="Soal sebelumnya"
-          className="grid size-9 place-items-center rounded-lg border border-line text-muted transition-colors duration-150 hover:text-ink disabled:opacity-40"
+          className={`grid place-items-center rounded-lg border border-line text-muted transition-colors duration-150 hover:text-ink disabled:opacity-40 ${compact ? "size-8" : "size-9"}`}
         >
           <ChevronLeft size={17} />
         </button>
@@ -145,9 +145,9 @@ export function QuestionView({ compact = false }: { compact?: boolean }) {
               type="button"
               disabled={!chosen || pending}
               onClick={() => chosen && void answer(question.id, chosen)}
-              className="btn-solid inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium transition-[filter] duration-150 hover:brightness-110 disabled:opacity-50"
+              className={`btn-solid inline-flex w-full items-center justify-center gap-2 rounded-lg px-3 font-medium transition-[filter] duration-150 hover:brightness-110 disabled:opacity-50 ${compact ? "h-8 text-[13px]" : "h-9 text-sm"}`}
             >
-              {pending && <LoaderCircle size={15} className="animate-spin" />} Periksa jawaban
+              {pending && <LoaderCircle size={15} className="animate-spin" />} {compact ? "Periksa" : "Periksa jawaban"}
             </button>
           )}
           {state.mode === "exam" && (
@@ -161,7 +161,7 @@ export function QuestionView({ compact = false }: { compact?: boolean }) {
           onClick={() => dispatch({ type: "next" })}
           disabled={state.index >= state.questions.length - 1}
           aria-label="Soal berikutnya"
-          className="grid size-9 place-items-center rounded-lg border border-line text-muted transition-colors duration-150 hover:text-ink disabled:opacity-40"
+          className={`grid place-items-center rounded-lg border border-line text-muted transition-colors duration-150 hover:text-ink disabled:opacity-40 ${compact ? "size-8" : "size-9"}`}
         >
           <ChevronRight size={17} />
         </button>

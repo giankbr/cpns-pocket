@@ -7,17 +7,35 @@ import { finishSession, setBookmark, submitAnswer } from "@/app/(app)/sesi/actio
 import type { SessionInit } from "@/lib/study/session-state";
 import { createSessionStore, type SessionStore, type SessionStoreState } from "@/lib/study/session-store";
 
-const SessionContext = createContext<SessionStore | null>(null);
+type SessionContextValue = { store: SessionStore; onClosed?: (sessionId: string) => void };
 
-export function SessionProvider({ init, children }: { init: SessionInit; children: ReactNode }) {
+const SessionContext = createContext<SessionContextValue | null>(null);
+
+/**
+ * `onClosed` runs when the session ends (finished, expired). Without it the user is
+ * taken to the result page; Mini Mode passes its own handler to stay in the window.
+ */
+export function SessionProvider({
+  init,
+  onClosed,
+  children,
+}: {
+  init: SessionInit;
+  onClosed?: (sessionId: string) => void;
+  children: ReactNode;
+}) {
   const [store] = useState(() => createSessionStore(init));
-  return <SessionContext.Provider value={store}>{children}</SessionContext.Provider>;
+  return <SessionContext.Provider value={{ store, onClosed }}>{children}</SessionContext.Provider>;
+}
+
+function useSessionContext() {
+  const value = useContext(SessionContext);
+  if (!value) throw new Error("useSession must be used inside <SessionProvider>");
+  return value;
 }
 
 function useSessionStore() {
-  const store = useContext(SessionContext);
-  if (!store) throw new Error("useSession must be used inside <SessionProvider>");
-  return store;
+  return useSessionContext().store;
 }
 
 export function useSession<T>(selector: (state: SessionStoreState) => T): T {
@@ -26,13 +44,18 @@ export function useSession<T>(selector: (state: SessionStoreState) => T): T {
 
 /** Actions shared by the main view and Mini Mode; all state goes through the store. */
 export function useSessionActions() {
-  const store = useSessionStore();
+  const { store, onClosed } = useSessionContext();
   const router = useRouter();
 
   const toResults = useCallback(() => {
-    router.replace(`/sesi/${store.getState().sessionId}/hasil`);
+    const { sessionId } = store.getState();
+    if (onClosed) {
+      onClosed(sessionId);
+      return;
+    }
+    router.replace(`/sesi/${sessionId}/hasil`);
     router.refresh();
-  }, [router, store]);
+  }, [onClosed, router, store]);
 
   const answer = useCallback(
     async (questionId: string, optionId: string) => {

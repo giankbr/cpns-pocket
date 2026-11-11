@@ -84,22 +84,6 @@ export async function startExam(_: StartState, formData: FormData): Promise<Star
   redirect(`/sesi/${data as string}`);
 }
 
-/**
- * Daily Challenge: 5 random published questions not answered before. Returns the id
- * instead of redirecting, because it is started from the Mini Mode window, where a
- * form navigation would navigate (and close) the floating window.
- */
-export async function startDailyChallenge(): Promise<{ id: string } | { error: string }> {
-  const { supabase } = await requireSession();
-  const { data, error } = await supabase.rpc("start_study_session", {
-    p_mode: "practice",
-    p_filter: "unanswered",
-    p_count: 5,
-  });
-  if (error) return { error: rpcErrorMessage(error) };
-  return { id: data as string };
-}
-
 const answerSchema = z.object({ sessionId: z.uuid(), questionId: z.uuid(), optionId: z.uuid() });
 
 export type SubmitResult =

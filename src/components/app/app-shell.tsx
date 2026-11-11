@@ -76,7 +76,7 @@ export function AppShell({
             </button>
             <div className="min-w-0 flex-1">
               <h1 className="truncate font-serif lining-nums text-xl leading-6 tracking-tight text-ink">
-                {current?.label ?? "CPNS Pocket"}
+                {current?.label ?? "CPOCKET"}
               </h1>
               <p className="truncate text-xs text-muted">
                 {greeting}, {user.name}!
@@ -131,7 +131,7 @@ function SidebarContent({
           <Link href="/dashboard" className="flex items-center gap-2 pl-1">
             <Logo />
             <span className="font-serif lining-nums text-xl tracking-tight text-ink">
-              CPNS Pocket
+              CPOCKET
             </span>
           </Link>
         )}

@@ -1,8 +1,8 @@
-# Build CPNS Pocket — Personal CPNS Learning Platform
+# Build CPOCKET — Personal CPNS Learning Platform
 
 ## Project Overview
 
-Build a production-ready personal CPNS learning platform called **CPNS Pocket** using Next.js, TypeScript, Supabase, and Tailwind CSS.
+Build a production-ready personal CPNS learning platform called **CPOCKET** using Next.js, TypeScript, Supabase, and Tailwind CSS.
 
 The application is designed for one private user who wants to study Indonesian CPNS exam materials, practice questions, and run CAT simulations.
 

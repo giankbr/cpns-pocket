@@ -117,6 +117,19 @@ export function PracticeForm({ subjects, defaultFilter = "all" }: { subjects: Su
   );
 }
 
+/** One-click practice for a single topic (used on the Materi page). */
+export function PracticeTopicButton({ topicId, count = 10, label = "Latihan topik ini" }: { topicId: string; count?: number; label?: string }) {
+  const [state, action, pending] = useActionState(startPractice, { error: null });
+  return (
+    <form action={action} className="space-y-2">
+      <input type="hidden" name="topicIds" value={topicId} />
+      <input type="hidden" name="count" value={count} />
+      <SubmitButton pending={pending} label={label} />
+      <ErrorText state={state} />
+    </form>
+  );
+}
+
 export function ExamPresetButton({ configId, label }: { configId: string; label: string }) {
   const [state, action, pending] = useActionState(startExam, { error: null });
   return (
