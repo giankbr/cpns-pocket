@@ -49,7 +49,7 @@ describe("answer persistence & session recovery", () => {
   it("resumes at the first unanswered question with saved answers and feedback", () => {
     const state = createSessionState({
       ...base,
-      mode: "practice",
+      mode: "practice", instant: true,
       answers: { "1": "1-a" },
       feedback: [feedback("1", "1-a")],
       bookmarks: ["2"],
@@ -61,7 +61,7 @@ describe("answer persistence & session recovery", () => {
   });
 
   it("locks a practice answer after it is checked", () => {
-    let state = createSessionState({ ...base, mode: "practice" });
+    let state = createSessionState({ ...base, mode: "practice", instant: true });
     state = sessionReducer(state, { type: "select", questionId: "1", optionId: "1-b" });
     assert.equal(state.drafts["1"], "1-b");
     state = sessionReducer(state, { type: "submit:start", questionId: "1", optionId: "1-b" });
@@ -73,7 +73,7 @@ describe("answer persistence & session recovery", () => {
   });
 
   it("saves exam answers optimistically and rolls back on failure", () => {
-    let state = createSessionState({ ...base, mode: "exam", answers: { "1": "1-a" } });
+    let state = createSessionState({ ...base, mode: "exam", instant: false, answers: { "1": "1-a" } });
     state = sessionReducer(state, { type: "submit:start", questionId: "1", optionId: "1-c" });
     assert.equal(state.answers["1"], "1-c");
     assert.equal(state.pending["1"], true);
@@ -83,14 +83,14 @@ describe("answer persistence & session recovery", () => {
   });
 
   it("blocks changes once the session is closed", () => {
-    let state = createSessionState({ ...base, mode: "exam" });
+    let state = createSessionState({ ...base, mode: "exam", instant: false });
     state = sessionReducer(state, { type: "closed" });
     const after = sessionReducer(state, { type: "submit:start", questionId: "2", optionId: "2-a" });
     assert.equal(after.answers["2"], undefined);
   });
 
   it("clamps navigation to the question range", () => {
-    let state = createSessionState({ ...base, mode: "practice" });
+    let state = createSessionState({ ...base, mode: "practice", instant: true });
     state = sessionReducer(state, { type: "prev" });
     assert.equal(state.index, 0);
     state = sessionReducer(state, { type: "goto", index: 99 });
@@ -100,7 +100,7 @@ describe("answer persistence & session recovery", () => {
 
 describe("Mini Mode state synchronization", () => {
   it("keeps the main view and the floating window on the same store state", () => {
-    const store = createSessionStore({ ...{ sessionId: "s", status: "in_progress" as const, deadline: null }, mode: "exam", questions: [question("1"), question("2")] });
+    const store = createSessionStore({ ...{ sessionId: "s", status: "in_progress" as const, deadline: null }, mode: "exam", instant: false, questions: [question("1"), question("2")] });
     const seenByMain: number[] = [];
     const seenByMini: number[] = [];
     store.subscribe((state) => seenByMain.push(state.index));

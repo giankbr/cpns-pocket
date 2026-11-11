@@ -203,8 +203,8 @@ function Navigator() {
       </ol>
       <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-muted">
         <Legend className="bg-primary-soft border-primary/40" label="Dijawab" />
-        {state.mode === "practice" && <Legend className="bg-success/10 border-success/40" label="Benar" />}
-        {state.mode === "practice" && <Legend className="bg-danger/10 border-danger/40" label="Salah" />}
+        {state.instant && <Legend className="bg-success/10 border-success/40" label="Benar" />}
+        {state.instant && <Legend className="bg-danger/10 border-danger/40" label="Salah" />}
         <Legend className="border-line" label="Belum" />
         <li className="flex items-center gap-1.5">
           <span className="size-1.5 rounded-full bg-accent" /> Bookmark
@@ -245,9 +245,9 @@ function useKeyboard(pipWindow: Window | null) {
       else if (/^[1-5]$/.test(event.key)) {
         const option = question.options[Number(event.key) - 1];
         if (!option) return;
-        if (s.mode === "exam") void send(question.id, option.id);
+        if (!s.instant) void send(question.id, option.id);
         else act({ type: "select", questionId: question.id, optionId: option.id });
-      } else if (event.key === "Enter" && s.mode === "practice") {
+      } else if (event.key === "Enter" && s.instant) {
         const draft = s.drafts[question.id];
         if (draft && !s.feedback[question.id]) void send(question.id, draft);
       } else return;

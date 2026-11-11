@@ -44,10 +44,12 @@ export type SessionState = {
   bookmarks: Record<string, boolean>;
   /** Epoch ms when an exam ends; null for untimed practice. */
   deadline: number | null;
+  /** Practice with instant feedback: show the key right after each answer. Exams are always false. */
+  instant: boolean;
   error: string | null;
 };
 
-export type SessionInit = Pick<SessionState, "sessionId" | "mode" | "status" | "questions" | "deadline"> & {
+export type SessionInit = Pick<SessionState, "sessionId" | "mode" | "status" | "questions" | "deadline" | "instant"> & {
   answers?: Record<string, string>;
   feedback?: Feedback[];
   bookmarks?: string[];
@@ -86,6 +88,7 @@ export function createSessionState(init: SessionInit): SessionState {
     pending: {},
     bookmarks: Object.fromEntries((init.bookmarks ?? []).map((id) => [id, true])),
     deadline: init.deadline,
+    instant: init.instant,
     error: null,
   };
 }
@@ -97,7 +100,7 @@ function clampIndex(state: SessionState, index: number) {
 export function isLocked(state: SessionState, questionId: string) {
   if (state.status !== "in_progress") return true;
   if (state.pending[questionId]) return true;
-  return state.mode === "practice" && Boolean(state.feedback[questionId]);
+  return state.instant && Boolean(state.feedback[questionId]);
 }
 
 export function sessionReducer(state: SessionState, action: SessionAction): SessionState {
@@ -109,7 +112,7 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
     case "prev":
       return { ...state, index: clampIndex(state, state.index - 1) };
     case "select":
-      if (isLocked(state, action.questionId) || state.mode !== "practice") return state;
+      if (isLocked(state, action.questionId) || !state.instant) return state;
       return { ...state, drafts: { ...state.drafts, [action.questionId]: action.optionId } };
     case "submit:start":
       if (isLocked(state, action.questionId)) return state;
@@ -119,7 +122,7 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
         pending: { ...state.pending, [action.questionId]: true },
         // Exams show the choice immediately (optimistic); rolled back on failure.
         answers:
-          state.mode === "exam" ? { ...state.answers, [action.questionId]: action.optionId } : state.answers,
+          state.instant ? state.answers : { ...state.answers, [action.questionId]: action.optionId },
       };
     case "submit:saved":
       return {
@@ -144,7 +147,7 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
       return {
         ...state,
         pending: omit(state.pending, action.questionId),
-        answers: state.mode === "exam" ? answers : state.answers,
+        answers: state.instant ? state.answers : answers,
         error: action.message,
       };
     }

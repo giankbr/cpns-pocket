@@ -13,7 +13,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   const loaded = await loadSession(supabase, id);
   if (!loaded) notFound();
 
-  const { session, questions, answers, feedback, bookmarks, deadline, expired } = loaded;
+  const { session, questions, answers, feedback, bookmarks, deadline, expired, instant } = loaded;
 
   // An exam left open past its deadline is closed on the next visit.
   if (expired) {
@@ -31,6 +31,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
         status: session.status,
         questions,
         deadline,
+        instant,
         answers: Object.fromEntries(answers.map((answer) => [answer.question_id, answer.option_id])),
         feedback,
         bookmarks,

@@ -34,6 +34,7 @@ export async function loadSession(supabase: SupabaseClient, sessionId: string) {
         name?: string | null;
         duration_minutes?: number | null;
         points_per_correct?: number | null;
+        review?: "instant" | "end";
         question_count?: number;
         passing_grades?: Partial<Record<SubjectCode, number>> | null;
       };
@@ -99,6 +100,8 @@ export async function loadSession(supabase: SupabaseClient, sessionId: string) {
     feedback: (feedback.data as Feedback[] | null) ?? [],
     bookmarks: (bookmarks.data ?? []).map((row) => row.question_id),
     deadline,
+    /** Practice with instant feedback (legacy sessions without a review mode default to instant). */
+    instant: session.mode !== "exam" && (session.configuration.review ?? "instant") === "instant",
     /** Timed session still open after its deadline (closed on next visit). */
     expired: session.status === "in_progress" && deadline !== null && Date.now() > deadline,
     pointsPerCorrect: session.configuration.points_per_correct ?? 5,

@@ -17,7 +17,7 @@ export function QuestionView({ compact = false }: { compact?: boolean }) {
 
   const feedback = state.feedback[question.id];
   const keyById = new Map(feedback?.options.map((option) => [option.id, option]));
-  const chosen = state.mode === "practice" ? (state.answers[question.id] ?? state.drafts[question.id]) : state.answers[question.id];
+  const chosen = state.instant ? (state.answers[question.id] ?? state.drafts[question.id]) : state.answers[question.id];
   const locked = isLocked(state, question.id);
   const pending = Boolean(state.pending[question.id]);
   const isWeighted = question.type === "weighted";
@@ -25,7 +25,7 @@ export function QuestionView({ compact = false }: { compact?: boolean }) {
 
   function pick(optionId: string) {
     if (locked) return;
-    if (state.mode === "exam") void answer(question.id, optionId);
+    if (!state.instant) void answer(question.id, optionId);
     else dispatch({ type: "select", questionId: question.id, optionId });
   }
 
@@ -147,7 +147,7 @@ export function QuestionView({ compact = false }: { compact?: boolean }) {
           <ChevronLeft size={17} />
         </button>
         <div className="flex-1">
-          {state.mode === "practice" && !feedback && (
+          {state.instant && !feedback && (
             <button
               type="button"
               disabled={!chosen || pending}
@@ -157,7 +157,7 @@ export function QuestionView({ compact = false }: { compact?: boolean }) {
               {pending && <LoaderCircle size={15} className="animate-spin" />} {compact ? "Periksa" : "Periksa jawaban"}
             </button>
           )}
-          {state.mode === "exam" && (
+          {!state.instant && (
             <p className="text-center text-xs text-subtle">
               {pending ? "Menyimpan…" : state.answers[question.id] ? "Jawaban tersimpan" : "Pilih jawaban"}
             </p>

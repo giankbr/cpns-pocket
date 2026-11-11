@@ -109,7 +109,17 @@ export function PracticeForm({ subjects, defaultFilter = "all" }: { subjects: Su
           Jumlah soal
           <input name="count" type="number" min={1} max={200} defaultValue={20} className={`mt-1.5 ${field}`} />
         </label>
+        <label className="text-sm text-muted">
+          Lihat pembahasan
+          <select name="review" defaultValue="end" className={`mt-1.5 ${field}`}>
+            <option value="end">Di akhir sesi</option>
+            <option value="instant">Langsung tiap soal</option>
+          </select>
+        </label>
       </div>
+      <p className="text-xs text-subtle">
+        &ldquo;Di akhir&rdquo;: benar/salah dan pembahasan baru muncul setelah sesi selesai, seperti ujian sungguhan.
+      </p>
 
       <ErrorText state={state} />
       <SubmitButton pending={pending} label="Mulai latihan" />
@@ -124,6 +134,7 @@ export function PracticeTopicButton({ topicId, count = 10, label = "Latihan topi
     <form action={action} className="space-y-2">
       <input type="hidden" name="topicIds" value={topicId} />
       <input type="hidden" name="count" value={count} />
+      <input type="hidden" name="review" value="end" />
       <SubmitButton pending={pending} label={label} />
       <ErrorText state={state} />
     </form>

@@ -16,6 +16,7 @@ const practiceSchema = z.object({
   difficulty: z.enum(["", "easy", "medium", "hard"]),
   filter: z.enum(["all", "unanswered", "bookmarked", "incorrect"]),
   count: z.coerce.number().int().min(1).max(200),
+  review: z.enum(["instant", "end"]).default("end"),
 });
 
 const examSchema = z.union([
@@ -42,11 +43,12 @@ export async function startPractice(_: StartState, formData: FormData): Promise<
     difficulty: formData.get("difficulty") ?? "",
     filter: formData.get("filter") ?? "all",
     count: formData.get("count"),
+    review: formData.get("review") ?? "end",
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Isian tidak valid." };
 
   const { supabase } = await requireSession();
-  const { subjects, topicIds, difficulty, filter, count } = parsed.data;
+  const { subjects, topicIds, difficulty, filter, count, review } = parsed.data;
   const { data, error } = await supabase.rpc("start_study_session", {
     p_mode: "practice",
     p_subject_codes: subjects.length ? subjects : null,
@@ -54,6 +56,7 @@ export async function startPractice(_: StartState, formData: FormData): Promise<
     p_difficulty: difficulty || null,
     p_filter: filter,
     p_count: count,
+    p_review: review,
   });
   if (error) return { error: rpcErrorMessage(error) };
 
@@ -71,12 +74,13 @@ export async function startExam(_: StartState, formData: FormData): Promise<Star
   const { supabase } = await requireSession();
   const args =
     "configId" in parsed.data
-      ? { p_mode: "exam", p_exam_configuration_id: parsed.data.configId }
+      ? { p_mode: "exam", p_exam_configuration_id: parsed.data.configId, p_review: "end" }
       : {
           p_mode: "exam",
           p_subject_codes: parsed.data.subjects,
           p_count: parsed.data.count,
           p_duration_minutes: parsed.data.duration,
+          p_review: "end",
         };
   const { data, error } = await supabase.rpc("start_study_session", args);
   if (error) return { error: rpcErrorMessage(error) };

@@ -39,6 +39,7 @@ export async function startMiniSession(input: z.input<typeof startSchema>): Prom
       p_topic_ids: topicIds.length ? topicIds : null,
       p_filter: filter,
       p_count: count,
+      p_review: "instant",
     });
 
   // Prefer questions never answered; when all have been seen, repeat from the full pool.
@@ -71,7 +72,7 @@ export async function loadMiniSession(sessionId: string): Promise<MiniSessionDat
   const loaded = await loadSession(supabase, sessionId);
   if (!loaded) return { status: "missing" };
 
-  const { session, questions, answers, feedback, bookmarks, deadline, pointsPerCorrect } = loaded;
+  const { session, questions, answers, feedback, bookmarks, deadline, pointsPerCorrect, instant } = loaded;
 
   if (session.status === "in_progress") {
     return {
@@ -82,6 +83,7 @@ export async function loadMiniSession(sessionId: string): Promise<MiniSessionDat
         status: session.status,
         questions,
         deadline,
+        instant,
         answers: Object.fromEntries(answers.map((answer) => [answer.question_id, answer.option_id])),
         feedback,
         bookmarks,
