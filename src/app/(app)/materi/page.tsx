@@ -59,7 +59,7 @@ export default async function MateriPage({ searchParams }: { searchParams: Promi
     ? ((
         await supabase
           .from("annotations")
-          .select("id, material_id, kind, color, start_offset, end_offset, quote, note, created_at")
+          .select("id, material_id, kind, color, start_offset, end_offset, quote, note, ink, created_at")
           .eq("material_id", active.id)
           .order("created_at")
           .returns<Annotation[]>()
@@ -156,8 +156,7 @@ export default async function MateriPage({ searchParams }: { searchParams: Promi
             </div>
 
             <article className="p-4 sm:p-6">
-              <h1 className="mb-1 font-serif text-[32px] leading-9">{active.title}</h1>
-              <p className="mb-5 text-xs text-subtle">Blok teks untuk memberi stabilo, garis bawah, coretan, atau catatan.</p>
+              <h1 className="mb-4 font-serif text-[32px] leading-9">{active.title}</h1>
               <Annotator key={active.id} materialId={active.id} initial={annotations}>
                 <Markdown text={active.body} />
               </Annotator>

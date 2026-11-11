@@ -3,6 +3,7 @@
 import { Bookmark, BookmarkCheck, Check, ChevronLeft, ChevronRight, LoaderCircle, X } from "lucide-react";
 import { isLocked } from "@/lib/study/session-state";
 import { subjectStyle } from "@/lib/study/queries";
+import { AiExplain } from "./ai-explain";
 import { useSession, useSessionActions } from "./session-context";
 
 const letters = ["A", "B", "C", "D", "E"];
@@ -130,7 +131,8 @@ export function QuestionView({ compact = false }: { compact?: boolean }) {
                 ? "Jawaban benar"
                 : "Jawaban belum tepat"}
           </p>
-          <p className="whitespace-pre-line text-ink">{feedback.explanation ?? "Belum ada pembahasan untuk soal ini."}</p>
+          <p className="whitespace-pre-line text-ink">{feedback.explanation ?? "Belum ada pembahasan tertulis untuk soal ini."}</p>
+          <AiExplain questionId={question.id} hasExplanation={Boolean(feedback.explanation)} compact={compact} />
         </div>
       )}
 

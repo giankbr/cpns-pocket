@@ -10,7 +10,7 @@ type Row = Annotation & {
   learning_materials: { title: string; topic_id: string; topics: { subjects: { code: SubjectCode } | null } | null } | null;
 };
 
-const kindLabel = { highlight: "Stabilo", underline: "Garis bawah", strike: "Coret", note: "Catatan" } as const;
+const kindLabel = { highlight: "Stabilo", underline: "Garis bawah", strike: "Coret", note: "Catatan", ink: "Pena" } as const;
 const swatch = { yellow: "#facc15", green: "#4ade80", pink: "#f472b6", blue: "#60a5fa" } as const;
 
 export default async function CatatanPage() {
@@ -18,7 +18,7 @@ export default async function CatatanPage() {
   const { data, error } = await supabase
     .from("annotations")
     .select(
-      "id, material_id, kind, color, start_offset, end_offset, quote, note, created_at, learning_materials(title, topic_id, topics(subjects(code)))",
+      "id, material_id, kind, color, start_offset, end_offset, quote, note, ink, created_at, learning_materials(title, topic_id, topics(subjects(code)))",
     )
     .order("created_at", { ascending: false })
     .returns<Row[]>();
@@ -28,7 +28,7 @@ export default async function CatatanPage() {
   const personal = rows.filter((row) => !row.material_id);
   const byMaterial = new Map<string, Row[]>();
   for (const row of rows) {
-    if (row.material_id && row.learning_materials) byMaterial.set(row.material_id, [...(byMaterial.get(row.material_id) ?? []), row]);
+    if (row.material_id && row.learning_materials && row.kind !== "ink") byMaterial.set(row.material_id, [...(byMaterial.get(row.material_id) ?? []), row]);
   }
 
   return (

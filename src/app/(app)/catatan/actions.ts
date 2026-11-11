@@ -7,16 +7,20 @@ import { requireSession } from "@/lib/auth/guards";
 export type Annotation = {
   id: string;
   material_id: string | null;
-  kind: "highlight" | "underline" | "strike" | "note";
+  kind: "highlight" | "underline" | "strike" | "note" | "ink";
   color: "yellow" | "green" | "pink" | "blue" | null;
   start_offset: number | null;
   end_offset: number | null;
   quote: string | null;
   note: string | null;
+  ink: Ink | null;
   created_at: string;
 };
 
-const COLUMNS = "id, material_id, kind, color, start_offset, end_offset, quote, note, created_at";
+/** Freehand stroke; coordinates are px relative to the content box when it was `w` px wide. */
+export type Ink = { w: number; color: string; size: number; points: [number, number][] };
+
+const COLUMNS = "id, material_id, kind, color, start_offset, end_offset, quote, note, ink, created_at";
 
 const createSchema = z
   .object({
@@ -52,6 +56,29 @@ export async function createAnnotation(input: z.input<typeof createSchema>): Pro
     .single<Annotation>();
   if (error || !data) return { ok: false, error: "Gagal menyimpan. Coba lagi." };
   revalidatePath("/catatan");
+  return { ok: true, data };
+}
+
+const inkSchema = z.object({
+  materialId: z.uuid(),
+  ink: z.object({
+    w: z.number().positive().max(10000),
+    color: z.string().regex(/^#[0-9a-f]{6}$/i),
+    size: z.number().min(1).max(24),
+    points: z.array(z.tuple([z.number(), z.number()])).min(2).max(4000),
+  }),
+});
+
+export async function createInk(input: z.input<typeof inkSchema>): Promise<Result<Annotation>> {
+  const parsed = inkSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Coretan tidak valid." };
+  const { supabase } = await requireSession();
+  const { data, error } = await supabase
+    .from("annotations")
+    .insert({ material_id: parsed.data.materialId, kind: "ink", ink: parsed.data.ink })
+    .select(COLUMNS)
+    .single<Annotation>();
+  if (error || !data) return { ok: false, error: "Coretan gagal disimpan." };
   return { ok: true, data };
 }
 
