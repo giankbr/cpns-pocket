@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { Bot, Send } from "lucide-react";
+import { Send, Sparkles } from "lucide-react";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -47,46 +47,46 @@ export function AiChat() {
   }
 
   return (
-    <section className="rounded-xl border border-[#e7e5df] bg-white p-6">
+    <section className="flex h-[calc(100vh-124px)] min-h-[480px] flex-col rounded-2xl border border-line bg-surface p-5">
       <div className="flex items-start gap-3">
-        <div className="rounded-lg bg-[#efeee9] p-2 text-[#55544d]">
-          <Bot size={18} />
-        </div>
+        <span className="grid size-11 place-items-center rounded-xl bg-linear-to-b from-[#4f8dff] to-primary-strong text-white">
+          <Sparkles size={19} />
+        </span>
         <div>
-          <h2 className="font-semibold">Tanya AI</h2>
-          <p className="mt-1 text-sm text-[#8a8981]">
-            Minta penjelasan konsep CPNS atau strategi belajar.
+          <h2 className="font-medium">Tanya AI</h2>
+          <p className="text-sm text-muted">
+            Penjelasan konsep TWK, TIU, TKP, Bahasa Inggris, atau strategi belajar.
           </p>
         </div>
       </div>
 
-      <div className="mt-5 max-h-80 space-y-3 overflow-y-auto">
+      <div className="mt-5 min-h-0 flex-1 space-y-3 overflow-y-auto">
         {messages.length === 0 && (
-          <p className="rounded-lg border border-dashed border-[#dcdad2] px-4 py-5 text-sm leading-6 text-[#8a8981]">
+          <p className="rounded-xl border border-dashed border-line-strong px-4 py-5 text-sm leading-6 text-subtle">
             Contoh: &quot;Jelaskan perbedaan desentralisasi dan dekonsentrasi.&quot;
           </p>
         )}
         {messages.map((message, index) => (
           <div
             key={`${message.role}-${index}`}
-            className={`rounded-lg px-4 py-3 text-sm leading-6 ${
+            className={`rounded-2xl px-4 py-3 text-sm leading-6 whitespace-pre-line ${
               message.role === "user"
-                ? "ml-8 bg-[#272722] text-white"
-                : "mr-8 bg-[#f7f7f5] text-[#55544d]"
+                ? "ml-12 bg-primary text-white"
+                : "mr-12 bg-canvas text-ink"
             }`}
           >
             {message.content}
           </div>
         ))}
         {isLoading && (
-          <p className="mr-8 rounded-lg bg-[#f7f7f5] px-4 py-3 text-sm text-[#8a8981]">
+          <p className="mr-12 rounded-2xl bg-canvas px-4 py-3 text-sm text-subtle">
             AI sedang berpikir...
           </p>
         )}
       </div>
 
       {error && (
-        <p role="alert" className="mt-3 text-sm text-[#9a4332]">
+        <p role="alert" className="mt-3 text-sm text-danger">
           {error}
         </p>
       )}
@@ -97,13 +97,13 @@ export function AiChat() {
           onChange={(event) => setInput(event.target.value)}
           placeholder="Tulis pertanyaan..."
           maxLength={4000}
-          className="h-11 min-w-0 flex-1 rounded-lg border border-[#dcdad2] px-3 text-sm outline-none transition focus:border-[#77766e] focus:ring-2 focus:ring-[#e7e5df]"
+          className="h-11 min-w-0 flex-1 rounded-xl border border-line-strong px-3 text-sm outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
           aria-label="Pertanyaan untuk AI"
         />
         <button
           type="submit"
           disabled={isLoading || !input.trim()}
-          className="inline-flex h-11 items-center gap-2 rounded-lg bg-[#272722] px-4 text-sm font-medium text-white transition hover:bg-[#44433b] disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-medium text-white transition hover:bg-primary-strong disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Send size={15} />
           Kirim

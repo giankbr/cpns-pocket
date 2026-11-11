@@ -9,5 +9,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.redirect(new URL("/login", request.url));
+  // 303 so the browser follows with GET instead of re-POSTing to /login.
+  return NextResponse.redirect(new URL("/login", request.url), 303);
 }
