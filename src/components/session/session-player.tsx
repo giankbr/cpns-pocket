@@ -5,7 +5,8 @@ import { Flag, PictureInPicture2, Timer } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { progressOf, type SessionInit } from "@/lib/study/session-state";
-import { MiniModeHost, useMiniMode } from "./mini-mode";
+import { useMini } from "@/components/mini/mini-mode";
+import { SessionMiniPortal } from "./mini-mode";
 import { QuestionView } from "./question-view";
 import { formatRemaining, SessionProvider, useCountdown, useSession, useSessionActions } from "./session-context";
 
@@ -24,7 +25,8 @@ function Player({ title }: { title: string }) {
   const progress = useSession(useShallow(progressOf));
   const remaining = useCountdown(deadline);
   const { finish } = useSessionActions();
-  const mini = useMiniMode();
+  const mini = useMini();
+  const showingInMini = mini.active && mini.tab === "soal";
   const [confirming, setConfirming] = useState(false);
   const [finishing, setFinishing] = useState(false);
   const autoSubmitted = useRef(false);
@@ -76,8 +78,8 @@ function Player({ title }: { title: string }) {
         )}
         <button
           type="button"
-          onClick={() => void mini.open()}
-          disabled={mini.active}
+          onClick={() => void mini.open("soal")}
+          disabled={showingInMini}
           className="inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-sm font-medium transition-colors duration-150 hover:border-primary hover:text-primary disabled:opacity-50"
           title={mini.supported ? "Buka jendela mengambang" : "Browser belum mendukung jendela mengambang; dibuka di halaman ini"}
         >
@@ -95,7 +97,7 @@ function Player({ title }: { title: string }) {
       </Card>
 
       <Card className="col-span-12 p-4 sm:p-6 lg:col-span-8">
-        {mini.pipWindow ? (
+        {showingInMini ? (
           <div className="grid h-full min-h-60 place-items-center text-center">
             <div>
               <p className="font-serif text-2xl">Sedang di mode mini</p>
@@ -118,7 +120,7 @@ function Player({ title }: { title: string }) {
         <Navigator />
       </Card>
 
-      <MiniModeHost mini={mini} />
+      <SessionMiniPortal />
 
       {confirming && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-ink/30 p-4" role="dialog" aria-modal aria-labelledby="finish-title">
