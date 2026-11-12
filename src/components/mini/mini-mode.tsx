@@ -1,7 +1,8 @@
 "use client";
 
-import { MessageCircle, Target, X } from "lucide-react";
+import { MessageCircle, RotateCcw, Target, X } from "lucide-react";
 import {
+  Component,
   createContext,
   type ReactNode,
   useCallback,
@@ -183,6 +184,34 @@ export function MiniModeProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Keeps a render error from blanking the whole floating window. Without it a
+ * thrown error unmounts the portal subtree and the mini window goes empty.
+ */
+export class MiniBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  render() {
+    if (!this.state.failed) return this.props.children;
+    return (
+      <div className="grid h-full place-items-center p-4 text-center">
+        <div className="space-y-2">
+          <p className="text-sm text-muted">Mode mini bermasalah sesaat.</p>
+          <button
+            type="button"
+            onClick={() => this.setState({ failed: false })}
+            className="btn-solid inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] font-medium"
+          >
+            <RotateCcw size={14} /> Muat ulang
+          </button>
+        </div>
+      </div>
+    );
+  }
+}
+
 function MiniHub({ value, onSlot }: { value: MiniContextValue; onSlot: (element: HTMLElement | null) => void }) {
   const tabs: { id: MiniTab; label: string; icon: typeof Target }[] = [
     { id: "soal", label: "Soal", icon: Target },
@@ -224,8 +253,12 @@ function MiniHub({ value, onSlot }: { value: MiniContextValue; onSlot: (element:
       <div className="relative min-h-0 flex-1">
         {/* Always mounted so an open session page can keep its portal target. */}
         <div ref={onSlot} className={`h-full ${value.tab === "soal" && value.hasSession ? "" : "hidden"}`} />
-        {value.tab === "soal" && !value.hasSession && <MiniPractice state={value.practice} setState={value.setPractice} />}
-        {value.tab === "ai" && <AiChat compact />}
+        <MiniBoundary>
+          {value.tab === "soal" && !value.hasSession && (
+            <MiniPractice state={value.practice} setState={value.setPractice} />
+          )}
+          {value.tab === "ai" && <AiChat compact />}
+        </MiniBoundary>
       </div>
     </div>
   );

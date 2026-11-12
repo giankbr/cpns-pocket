@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useShallow } from "zustand/react/shallow";
-import { useMini } from "@/components/mini/mini-mode";
+import { MiniBoundary, useMini } from "@/components/mini/mini-mode";
 import { progressOf } from "@/lib/study/session-state";
 import { QuestionView } from "./question-view";
 import { formatRemaining, useCountdown, useSession } from "./session-context";
@@ -21,7 +21,14 @@ export function SessionMiniPortal() {
     return () => setHasSession(false);
   }, [setHasSession]);
 
-  return sessionSlot ? createPortal(<SessionMiniView />, sessionSlot) : null;
+  return sessionSlot
+    ? createPortal(
+        <MiniBoundary>
+          <SessionMiniView />
+        </MiniBoundary>,
+        sessionSlot,
+      )
+    : null;
 }
 
 function SessionMiniView() {
