@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { Check, CircleDashed, Clock3, ListChecks, RotateCcw, Trophy, X } from "lucide-react";
+import { Check, CircleDashed, Clock3, Lightbulb, ListChecks, RotateCcw, Trophy, X } from "lucide-react";
 import { z } from "zod";
 import { Card, CardHeader, StatCard } from "@/components/ui/card";
 import { requireSession } from "@/lib/auth/guards";
@@ -8,6 +8,8 @@ import { sessionLabel, subjectStyle } from "@/lib/study/queries";
 import { summarizeSession } from "@/lib/study/scoring";
 import { loadSession } from "@/lib/study/session-loader";
 import { formatDateTime, formatDuration, percent } from "@/lib/study/stats";
+import { getTopicStats, weakestTopics } from "@/lib/study/topic-stats";
+import { WeaknessList } from "@/components/study/weakness";
 
 const letters = ["A", "B", "C", "D", "E"];
 
@@ -25,6 +27,8 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
   const feedbackById = new Map(feedback.map((item) => [item.question_id, item]));
   const answerById = new Map(answers.map((answer) => [answer.question_id, answer]));
   const title = session.configuration.name ?? sessionLabel.mode[session.mode];
+  const sessionSubjects = new Set(questions.map((q) => q.subject));
+  const weak = weakestTopics((await getTopicStats(supabase)).filter((row) => sessionSubjects.has(row.subject)), 1, 5);
   // Thresholds come from the exam preset (editable); absent for practice and custom exams.
   const passing = session.configuration.passing_grades ?? null;
   const passedAll = passing ? summary.bySubject.every((row) => row.score >= (passing[row.subject] ?? 0)) : null;
@@ -140,6 +144,15 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
           </table>
         </div>
       </Card>
+
+      {weak.length > 0 && (
+        <Card className="col-span-12">
+          <CardHeader icon={Lightbulb} title="Perlu diperkuat" description="Topik dengan penguasaan terendah dari bidang sesi ini" />
+          <div className="p-4">
+            <WeaknessList topics={weak} />
+          </div>
+        </Card>
+      )}
 
       <Card className="col-span-12">
         <CardHeader icon={CircleDashed} title="Pembahasan" description="Kunci jawaban dan penjelasan tiap soal" />

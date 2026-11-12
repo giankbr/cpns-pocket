@@ -20,6 +20,18 @@ export async function updateName(_: FormState, formData: FormData): Promise<Form
   return { error: null, success: "Nama tampilan diperbarui." };
 }
 
+const targetSchema = z.coerce.number().int().min(1, "Minimal 1 soal.").max(500, "Maksimal 500 soal.");
+
+export async function updateTarget(_: FormState, formData: FormData): Promise<FormState> {
+  const parsed = targetSchema.safeParse(formData.get("target"));
+  if (!parsed.success) return { error: parsed.error.issues[0].message, success: null };
+  const { supabase } = await requireSession();
+  const { error } = await supabase.rpc("set_daily_target", { p_target: parsed.data });
+  if (error) return { error: "Target gagal disimpan. Coba lagi.", success: null };
+  revalidatePath("/dashboard");
+  return { error: null, success: "Target harian diperbarui." };
+}
+
 const passwordSchema = z
   .object({
     current: z.string().min(1, "Isi password saat ini."),

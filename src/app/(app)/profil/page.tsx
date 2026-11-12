@@ -1,5 +1,5 @@
-import { KeyRound, LogOut, PencilLine, UserRound } from "lucide-react";
-import { NameForm, PasswordForm } from "@/components/app/profile-forms";
+import { KeyRound, LogOut, PencilLine, Target, UserRound } from "lucide-react";
+import { NameForm, PasswordForm, TargetForm } from "@/components/app/profile-forms";
 import { Card, CardHeader } from "@/components/ui/card";
 import { displayNameOf, requireSession } from "@/lib/auth/guards";
 import { formatDateTime } from "@/lib/study/stats";
@@ -52,6 +52,13 @@ export default async function ProfilPage() {
         <CardHeader icon={PencilLine} title="Ubah profil" description="Nama ini tampil di sapaan dan avatar" />
         <div className="p-4">
           <NameForm name={profile.display_name ?? name} />
+        </div>
+      </Card>
+
+      <Card className="col-span-12 lg:col-span-8 lg:col-start-5">
+        <CardHeader icon={Target} title="Target belajar" description="Jumlah soal yang ingin kamu kerjakan tiap hari" />
+        <div className="p-4">
+          <TargetForm target={profile.daily_target} />
         </div>
       </Card>
 

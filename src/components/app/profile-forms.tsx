@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { changePassword, type FormState, updateName } from "@/app/(app)/profil/actions";
+import { changePassword, type FormState, updateName, updateTarget } from "@/app/(app)/profil/actions";
 
 const initial: FormState = { error: null, success: null };
 const field =
@@ -29,6 +29,22 @@ export function NameForm({ name }: { name: string }) {
       <Status state={state} />
       <button type="submit" disabled={pending} className="btn-solid h-9 rounded-lg px-4 text-sm font-medium disabled:opacity-60">
         {pending ? "Menyimpan…" : "Simpan nama"}
+      </button>
+    </form>
+  );
+}
+
+export function TargetForm({ target }: { target: number }) {
+  const [state, action, pending] = useActionState(updateTarget, initial);
+  return (
+    <form action={action} className="space-y-3">
+      <label className="block text-sm text-muted">
+        Target soal per hari
+        <input name="target" type="number" min={1} max={500} defaultValue={target} required className={field} />
+      </label>
+      <Status state={state} />
+      <button type="submit" disabled={pending} className="btn-solid h-9 rounded-lg px-4 text-sm font-medium disabled:opacity-60">
+        {pending ? "Menyimpan…" : "Simpan target"}
       </button>
     </form>
   );

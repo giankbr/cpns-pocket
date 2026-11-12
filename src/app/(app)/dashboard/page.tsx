@@ -10,16 +10,18 @@ import {
   History,
   Layers,
   Library,
+  Lightbulb,
   PieChart,
   Target,
   TrendingUp,
 } from "lucide-react";
 import { AreaChart, Donut, Legend, ProgressBars } from "@/components/charts/charts";
 import { Card, CardHeader, EmptyState, StatCard } from "@/components/ui/card";
+import { WeaknessList, WrongQuestionsCard } from "@/components/study/weakness";
 import { requireSession } from "@/lib/auth/guards";
 import { getActivity, getCatalog, sessionLabel, subjectStyle } from "@/lib/study/queries";
+import { getTopicStats, totalWrong, weakestTopics } from "@/lib/study/topic-stats";
 import {
-  DAILY_TARGET,
   dailySeries,
   formatDateTime,
   formatDuration,
@@ -29,12 +31,16 @@ import {
 } from "@/lib/study/stats";
 
 export default async function DashboardPage() {
-  const { supabase } = await requireSession();
-  const [catalog, activity, bookmarks] = await Promise.all([
+  const { supabase, profile } = await requireSession();
+  const [catalog, activity, bookmarks, topicStats] = await Promise.all([
     getCatalog(supabase),
     getActivity(supabase),
     supabase.from("bookmarks").select("question_id", { count: "exact", head: true }),
+    getTopicStats(supabase),
   ]);
+  const dailyTarget = profile.daily_target;
+  const weakTopics = weakestTopics(topicStats);
+  const wrongCount = totalWrong(topicStats);
 
   const { answers, sessions, answerDates } = activity;
   const today = jakartaDate(new Date());
@@ -106,8 +112,8 @@ export default async function DashboardPage() {
           label="Streak belajar"
           value={`${studyStreak(answerDates, today)} hari`}
           footer={[
-            ["Target", `${DAILY_TARGET}/hari`],
-            ["Tercapai", `${Math.min(percent(todayCount, DAILY_TARGET), 100)}%`],
+            ["Target", `${dailyTarget}/hari`],
+            ["Tercapai", `${Math.min(percent(todayCount, dailyTarget), 100)}%`],
           ]}
         />
       </>
@@ -155,6 +161,34 @@ export default async function DashboardPage() {
                 color: row.color,
               }))}
             />
+          </div>
+        </Card>
+      </>
+
+      <>
+        <Card className="col-span-12 lg:col-span-7">
+          <CardHeader icon={Lightbulb} title="Analisis kelemahan" description="Topik dengan penguasaan terendah" action={<SeeAll href="/materi" />} />
+          <div className="p-4">
+            <WeaknessList topics={weakTopics} />
+          </div>
+        </Card>
+        <Card className="col-span-12 self-start lg:col-span-5">
+          <CardHeader icon={CircleCheckBig} title="Perbaiki kesalahan" description="Ulang soal yang pernah salah" />
+          <div className="space-y-3 p-4">
+            <WrongQuestionsCard wrong={wrongCount} />
+            <Link
+              href="/latihan?filter=unanswered"
+              className="group flex items-center gap-3 rounded-xl border border-line p-3 transition-colors duration-150 hover:border-primary hover:bg-primary-soft/40"
+            >
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary">
+                <BookOpenCheck size={18} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm text-ink group-hover:text-primary">Soal baru</span>
+                <span className="block text-xs text-subtle">Latihan soal yang belum pernah kamu jawab</span>
+              </span>
+              <ArrowRight size={16} className="text-muted transition-colors group-hover:text-primary" />
+            </Link>
           </div>
         </Card>
       </>

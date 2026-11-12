@@ -6,6 +6,7 @@ export type Profile = {
   display_name: string | null;
   role: "member" | "admin";
   status: "active" | "disabled";
+  daily_target: number;
   created_at: string;
 };
 
@@ -22,7 +23,7 @@ export const requireSession = cache(async () => {
 
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("display_name, role, status, created_at")
+    .select("display_name, role, status, daily_target, created_at")
     .eq("id", user.id)
     .maybeSingle<Profile>();
 
