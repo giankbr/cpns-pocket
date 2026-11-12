@@ -82,6 +82,7 @@ function Picker({ onBack, onStarted }: { onBack: () => void; onStarted: (session
   const [subjects, setSubjects] = useState<string[]>([]);
   const [topicIds, setTopicIds] = useState<string[]>([]);
   const [count, setCount] = useState(5);
+  const [review, setReview] = useState<"instant" | "end">("instant");
   const [error, setError] = useState<string | null>(null);
   const [loading, startLoading] = useTransition();
   const [starting, startStarting] = useTransition();
@@ -109,6 +110,7 @@ function Picker({ onBack, onStarted }: { onBack: () => void; onStarted: (session
         subjects: subjects as ("TWK" | "TIU" | "TKP" | "ENG")[],
         topicIds: topicIds.filter((id) => topics.some((topic) => topic.id === id)),
         count,
+        review,
       });
       if ("error" in result) setError(result.error);
       else onStarted(result.id);
@@ -187,6 +189,31 @@ function Picker({ onBack, onStarted }: { onBack: () => void; onStarted: (session
               {available} soal tersedia{available < count ? ` · dipakai ${available}` : ""}
             </p>
           )}
+        </section>
+
+        <section>
+          <p className="mb-1 text-[11px] tracking-wide text-subtle uppercase">Cek jawaban</p>
+          <div className="grid grid-cols-2 gap-1 rounded-lg bg-canvas p-0.5">
+            {([
+              ["instant", "Tiap jawab"],
+              ["end", "Di akhir"],
+            ] as const).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setReview(value)}
+                aria-pressed={review === value}
+                className={`rounded-md py-1 text-xs transition-colors duration-150 ${
+                  review === value ? "bg-surface text-ink shadow-[0_1px_2px_var(--shadow)]" : "text-muted hover:text-ink"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <p className="mt-1 text-[11px] text-subtle">
+            {review === "instant" ? "Benar/salah & pembahasan langsung muncul." : "Nilai & pembahasan muncul setelah selesai."}
+          </p>
         </section>
       </div>
 

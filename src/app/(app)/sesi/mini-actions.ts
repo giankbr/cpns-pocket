@@ -24,6 +24,7 @@ const startSchema = z.object({
   subjects: z.array(z.enum(["TWK", "TIU", "TKP", "ENG"])).max(4),
   topicIds: z.array(z.uuid()).max(50),
   count: z.number().int().min(1).max(50),
+  review: z.enum(["instant", "end"]).default("instant"),
 });
 
 export async function startMiniSession(input: z.input<typeof startSchema>): Promise<{ id: string } | { error: string }> {
@@ -31,7 +32,7 @@ export async function startMiniSession(input: z.input<typeof startSchema>): Prom
   if (!parsed.success) return { error: "Pilihan tidak valid." };
 
   const { supabase } = await requireSession();
-  const { subjects, topicIds, count } = parsed.data;
+  const { subjects, topicIds, count, review } = parsed.data;
   const run = (filter: "unanswered" | "all") =>
     supabase.rpc("start_study_session", {
       p_mode: "practice",
@@ -39,7 +40,7 @@ export async function startMiniSession(input: z.input<typeof startSchema>): Prom
       p_topic_ids: topicIds.length ? topicIds : null,
       p_filter: filter,
       p_count: count,
-      p_review: "end",
+      p_review: review,
     });
 
   // Prefer questions never answered; when all have been seen, repeat from the full pool.
