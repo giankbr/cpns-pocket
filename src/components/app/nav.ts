@@ -5,6 +5,7 @@ import {
   LayoutGrid,
   ListChecks,
   NotebookPen,
+  Shield,
   type LucideIcon,
   Sparkles,
   Timer,
@@ -44,11 +45,16 @@ export const navSections: { title: string; items: NavItem[] }[] = [
   },
 ];
 
+export const adminSection = {
+  title: "Admin",
+  items: [{ href: "/admin", label: "Progress User", icon: Shield }] as NavItem[],
+};
+
 const sessionItem: NavItem = { href: "/sesi", label: "Sesi belajar", icon: ListChecks };
 
 export function findNavItem(pathname: string) {
   if (pathname.startsWith("/sesi/")) return sessionItem;
-  return navSections
+  return [...navSections, adminSection]
     .flatMap((section) => section.items)
     .find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
 }

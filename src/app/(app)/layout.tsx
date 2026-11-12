@@ -9,7 +9,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   const { user, profile } = await requireSession();
 
   return (
-    <AppShell user={{ name: displayNameOf(user, profile), email: user.email ?? "" }} greeting={greetingFor()}>
+    <AppShell user={{ name: displayNameOf(user, profile), email: user.email ?? "" }} greeting={greetingFor()} isAdmin={profile.role === "admin"}>
       {children}
     </AppShell>
   );

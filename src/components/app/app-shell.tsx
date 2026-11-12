@@ -13,20 +13,13 @@ import {
   X,
 } from "lucide-react";
 import { MiniModeProvider, useMini } from "@/components/mini/mini-mode";
-import { findNavItem, navSections } from "./nav";
+import { adminSection, findNavItem, navSections } from "./nav";
 import { ThemeToggle } from "./theme";
 
 type ShellUser = { name: string; email: string };
+type ShellProps = { user: ShellUser; greeting: string; isAdmin: boolean; children: ReactNode };
 
-export function AppShell({
-  user,
-  greeting,
-  children,
-}: {
-  user: ShellUser;
-  greeting: string;
-  children: ReactNode;
-}) {
+export function AppShell({ user, greeting, isAdmin, children }: ShellProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -43,6 +36,7 @@ export function AppShell({
           <SidebarContent
             pathname={pathname}
             collapsed={collapsed}
+            isAdmin={isAdmin}
             onToggle={() => setCollapsed((value) => !value)}
           />
         </aside>
@@ -58,6 +52,7 @@ export function AppShell({
               <SidebarContent
                 pathname={pathname}
                 collapsed={false}
+                isAdmin={isAdmin}
                 onClose={() => setMobileOpen(false)}
                 onNavigate={() => setMobileOpen(false)}
               />
@@ -112,16 +107,19 @@ export function AppShell({
 function SidebarContent({
   pathname,
   collapsed,
+  isAdmin,
   onToggle,
   onClose,
   onNavigate,
 }: {
   pathname: string;
   collapsed: boolean;
+  isAdmin: boolean;
   onToggle?: () => void;
   onClose?: () => void;
   onNavigate?: () => void;
 }) {
+  const sections = isAdmin ? [...navSections, adminSection] : navSections;
   return (
     <>
       <div
@@ -160,7 +158,7 @@ function SidebarContent({
       </div>
 
       <nav className="flex-1 space-y-4 overflow-y-auto px-2.5 py-3">
-        {navSections.map((section) => (
+        {sections.map((section) => (
           <div key={section.title}>
             {!collapsed && (
               <p className="mb-1 px-2.5 text-[11px] tracking-wider text-subtle uppercase">
