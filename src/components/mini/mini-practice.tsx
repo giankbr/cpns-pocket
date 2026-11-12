@@ -81,6 +81,11 @@ function Picker({ onBack, onStarted }: { onBack: () => void; onStarted: (session
 
   const toggle = (list: string[], value: string) =>
     list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
+  // One subject at a time keeps the topic list short in the narrow window.
+  const pickSubject = (code: string) => {
+    setSubjects((current) => (current[0] === code ? [] : [code]));
+    setTopicIds([]);
+  };
   const topics = (options ?? []).filter((subject) => subjects.includes(subject.code)).flatMap((subject) => subject.topics);
   const available = (options ?? [])
     .filter((subject) => subjects.length === 0 || subjects.includes(subject.code))
@@ -110,14 +115,14 @@ function Picker({ onBack, onStarted }: { onBack: () => void; onStarted: (session
             </p>
           ) : (
             <div className="flex flex-wrap gap-1">
-              <button type="button" onClick={() => setSubjects([])} className={chip(subjects.length === 0)}>
+              <button type="button" onClick={() => { setSubjects([]); setTopicIds([]); }} className={chip(subjects.length === 0)}>
                 Semua
               </button>
               {(options ?? []).map((subject) => (
                 <button
                   key={subject.code}
                   type="button"
-                  onClick={() => setSubjects((current) => toggle(current, subject.code))}
+                  onClick={() => pickSubject(subject.code)}
                   className={chip(subjects.includes(subject.code))}
                 >
                   <span className="size-1.5 rounded-full" style={{ backgroundColor: subject.color }} />
@@ -131,7 +136,7 @@ function Picker({ onBack, onStarted }: { onBack: () => void; onStarted: (session
 
         {topics.length > 0 && (
           <section>
-            <p className="mb-1 text-[11px] tracking-wide text-subtle uppercase">Topik (opsional)</p>
+            <p className="mb-1 text-[11px] tracking-wide text-subtle uppercase">Topik {topics.length} (opsional)</p>
             <div className="flex flex-wrap gap-1">
               {topics.map((topic) => (
                 <button
