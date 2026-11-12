@@ -8,7 +8,7 @@
  */
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
-import { readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import {
   BATCHES,
@@ -103,7 +103,15 @@ function chunkDocument(text: string): string[] {
 
 function buildRequests() {
   const manifest = readJson<ManifestEntry[]>(MANIFEST, []);
-  const docs = manifest.filter((entry) => entry.hash && !entry.duplicateOf && !entry.note);
+  // Skip documents that already have structured output (same convention as chunk.ts).
+  const done = new Set(
+    existsSync(STRUCTURED_DIR)
+      ? readdirSync(STRUCTURED_DIR)
+          .filter((name) => name.endsWith(".json") && !name.startsWith("_"))
+          .map((name) => name.replace(/(__\d+)?\.json$/, ""))
+      : [],
+  );
+  const docs = manifest.filter((entry) => entry.hash && !entry.duplicateOf && !entry.note && !done.has(entry.slug));
   if (docs.length === 0) {
     console.error("No extracted documents. Run content:extract first.");
     process.exit(1);
@@ -244,7 +252,8 @@ async function collect(wait: boolean) {
       problems.push({ custom_id: result.custom_id, source: meta?.source, reason: data.error.message.slice(0, 300) });
       continue;
     }
-    writeJson(path.join(STRUCTURED_DIR, `${result.custom_id}.json`), { ...meta, data: data.data });
+    const outName = meta ? `${meta.slug}__${String(meta.chunk).padStart(2, "0")}` : result.custom_id;
+    writeJson(path.join(STRUCTURED_DIR, `${outName}.json`), { ...meta, data: data.data });
     written += 1;
   }
 
