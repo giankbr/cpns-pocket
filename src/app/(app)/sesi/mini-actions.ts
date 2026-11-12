@@ -39,7 +39,7 @@ export async function startMiniSession(input: z.input<typeof startSchema>): Prom
       p_topic_ids: topicIds.length ? topicIds : null,
       p_filter: filter,
       p_count: count,
-      p_review: "instant",
+      p_review: "end",
     });
 
   // Prefer questions never answered; when all have been seen, repeat from the full pool.
