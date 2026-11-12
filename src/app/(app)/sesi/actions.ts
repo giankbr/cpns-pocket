@@ -119,6 +119,23 @@ export async function submitAnswer(input: z.input<typeof answerSchema>): Promise
   return { status: "error", message: "Respons server tidak dikenal." };
 }
 
+const revealSchema = z.object({ sessionId: z.uuid(), questionId: z.uuid() });
+
+/** On-demand answer key + explanation for one answered question in a practice run. */
+export async function revealAnswer(input: z.input<typeof revealSchema>): Promise<Feedback | null> {
+  const parsed = revealSchema.safeParse(input);
+  if (!parsed.success) return null;
+
+  const { supabase } = await requireSession();
+  const { data, error } = await supabase.rpc("reveal_answer", {
+    p_session_id: parsed.data.sessionId,
+    p_question_id: parsed.data.questionId,
+  });
+  if (error || !data) return null;
+  const { question_id, selected_option_id, explanation, options } = data as Feedback;
+  return { question_id, selected_option_id, explanation, options };
+}
+
 export async function finishSession(sessionId: string): Promise<{ ok: boolean }> {
   if (!z.uuid().safeParse(sessionId).success) return { ok: false };
   const { supabase } = await requireSession();

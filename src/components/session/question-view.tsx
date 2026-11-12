@@ -1,6 +1,7 @@
 "use client";
 
-import { Bookmark, BookmarkCheck, Check, ChevronLeft, ChevronRight, LoaderCircle, X } from "lucide-react";
+import { Bookmark, BookmarkCheck, Check, ChevronLeft, ChevronRight, Eye, LoaderCircle, X } from "lucide-react";
+import { useTransition } from "react";
 import { isLocked } from "@/lib/study/session-state";
 import { subjectStyle } from "@/lib/study/queries";
 import { AiExplain } from "./ai-explain";
@@ -11,7 +12,8 @@ const letters = ["A", "B", "C", "D", "E"];
 /** One question with its options. `compact` is the Mini Mode layout. */
 export function QuestionView({ compact = false }: { compact?: boolean }) {
   const state = useSession((s) => s);
-  const { answer, toggleBookmark, dispatch } = useSessionActions();
+  const { answer, reveal, toggleBookmark, dispatch } = useSessionActions();
+  const [revealing, startRevealing] = useTransition();
   const question = state.questions[state.index];
   if (!question) return null;
 
@@ -152,11 +154,23 @@ export function QuestionView({ compact = false }: { compact?: boolean }) {
               {pending && <LoaderCircle size={15} className="animate-spin" />} {compact ? "Periksa" : "Periksa jawaban"}
             </button>
           )}
-          {!state.instant && (
-            <p className="text-center text-xs text-subtle">
-              {pending ? "Menyimpan…" : state.answers[question.id] ? "Jawaban tersimpan" : "Pilih jawaban"}
-            </p>
-          )}
+          {!state.instant &&
+            // Practice: once answered, offer an optional per-question reveal (key + pembahasan).
+            (state.mode === "practice" && state.answers[question.id] && !feedback ? (
+              <button
+                type="button"
+                disabled={revealing}
+                onClick={() => startRevealing(async () => void (await reveal(question.id)))}
+                className={`inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-line text-muted transition-colors duration-150 hover:border-primary hover:text-primary disabled:opacity-50 ${compact ? "h-8 text-[13px]" : "h-9 text-sm"}`}
+              >
+                {revealing ? <LoaderCircle size={15} className="animate-spin" /> : <Eye size={15} />}
+                Lihat jawaban &amp; pembahasan
+              </button>
+            ) : (
+              <p className="text-center text-xs text-subtle">
+                {pending ? "Menyimpan…" : state.answers[question.id] ? "Jawaban tersimpan" : "Pilih jawaban"}
+              </p>
+            ))}
         </div>
         <button
           type="button"

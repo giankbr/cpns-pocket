@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from "react";
 import { useStore } from "zustand";
-import { finishSession, setBookmark, submitAnswer } from "@/app/(app)/sesi/actions";
+import { finishSession, revealAnswer, setBookmark, submitAnswer } from "@/app/(app)/sesi/actions";
 import type { SessionInit } from "@/lib/study/session-state";
 import { createSessionStore, type SessionStore, type SessionStoreState } from "@/lib/study/session-store";
 
@@ -85,6 +85,17 @@ export function useSessionActions() {
     [store, toResults],
   );
 
+  const reveal = useCallback(
+    async (questionId: string) => {
+      const { dispatch, sessionId, answers, feedback } = store.getState();
+      // Only for questions already answered, and only once.
+      if (!answers[questionId] || feedback[questionId]) return;
+      const result = await revealAnswer({ sessionId, questionId });
+      if (result) dispatch({ type: "submit:evaluated", feedback: result });
+    },
+    [store],
+  );
+
   const toggleBookmark = useCallback(
     async (questionId: string) => {
       const { dispatch, bookmarks } = store.getState();
@@ -105,7 +116,7 @@ export function useSessionActions() {
     return ok;
   }, [store, toResults]);
 
-  return { answer, toggleBookmark, finish, dispatch: store.getState().dispatch };
+  return { answer, reveal, toggleBookmark, finish, dispatch: store.getState().dispatch };
 }
 
 /** Milliseconds left until `deadline` (null when untimed), ticking every second. */
