@@ -190,7 +190,7 @@ function MiniHub({ value, onSlot }: { value: MiniContextValue; onSlot: (element:
   ];
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-2 p-2.5">
+    <div className="mx-auto flex h-full min-h-0 w-full max-w-[720px] flex-col gap-2 p-2.5">
       <div className="flex items-center gap-2">
         <span className="min-w-0 truncate font-serif text-[17px] leading-none">Daily Challenge</span>
         <span className="flex-1" />

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { requireSession } from "@/lib/auth/guards";
 import { summarizeSession } from "@/lib/study/scoring";
 import { loadSession } from "@/lib/study/session-loader";
-import type { SessionInit } from "@/lib/study/session-state";
+import type { SessionInit, SubjectCode } from "@/lib/study/session-state";
 import { getSubjectOptions } from "@/lib/study/subject-options";
 
 /*
@@ -109,4 +109,42 @@ export async function loadMiniSession(sessionId: string): Promise<MiniSessionDat
     unanswered: summary.unanswered,
     verdicts,
   };
+}
+
+export type MiniReviewItem = {
+  questionId: string;
+  prompt: string;
+  subject: SubjectCode;
+  topic: string;
+  type: "objective" | "weighted";
+  options: { label: string; isCorrect: boolean | null; score: number | null; chosen: boolean }[];
+  explanation: string | null;
+};
+
+/** Per-question review for the mini result screen (only after the session is completed). */
+export async function loadMiniReview(sessionId: string): Promise<MiniReviewItem[]> {
+  if (!z.uuid().safeParse(sessionId).success) return [];
+  const { supabase } = await requireSession();
+  const loaded = await loadSession(supabase, sessionId);
+  if (!loaded || loaded.session.status === "in_progress") return [];
+
+  const feedbackByQ = new Map(loaded.feedback.map((f) => [f.question_id, f]));
+  return loaded.questions.map((q) => {
+    const fb = feedbackByQ.get(q.id);
+    const keyById = new Map((fb?.options ?? []).map((o) => [o.id, o]));
+    return {
+      questionId: q.id,
+      prompt: q.prompt,
+      subject: q.subject,
+      topic: q.topic,
+      type: q.type,
+      explanation: fb?.explanation ?? null,
+      options: q.options.map((o) => ({
+        label: o.label,
+        isCorrect: keyById.get(o.id)?.is_correct ?? null,
+        score: keyById.get(o.id)?.score ?? null,
+        chosen: fb?.selected_option_id === o.id,
+      })),
+    };
+  });
 }

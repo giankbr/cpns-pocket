@@ -1,12 +1,14 @@
 "use client";
 
 import { ArrowLeft, Check, Flag, LoaderCircle, Play, RotateCcw, ScrollText } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { AiExplain } from "@/components/session/ai-explain";
 import { useEffect, useState, useTransition } from "react";
 import { useShallow } from "zustand/react/shallow";
 import {
   getMiniOptions,
+  loadMiniReview,
   loadMiniSession,
+  type MiniReviewItem,
   type MiniSessionData,
   type MiniSubjectOption,
   startMiniSession,
@@ -20,7 +22,8 @@ export type MiniPracticeState =
   | { stage: "intro" }
   | { stage: "picker" }
   | { stage: "session"; sessionId: string }
-  | { stage: "result"; sessionId: string };
+  | { stage: "result"; sessionId: string }
+  | { stage: "review"; sessionId: string };
 
 type Props = { state: MiniPracticeState; setState: (state: MiniPracticeState) => void };
 
@@ -50,7 +53,15 @@ export function MiniPractice({ state, setState }: Props) {
         />
       );
     case "result":
-      return <Result sessionId={state.sessionId} onAgain={() => setState({ stage: "picker" })} />;
+      return (
+        <Result
+          sessionId={state.sessionId}
+          onAgain={() => setState({ stage: "picker" })}
+          onReview={() => setState({ stage: "review", sessionId: state.sessionId })}
+        />
+      );
+    case "review":
+      return <Review sessionId={state.sessionId} onBack={() => setState({ stage: "result", sessionId: state.sessionId })} />;
   }
 }
 
@@ -270,9 +281,8 @@ const dotTone: Record<string, string> = {
   empty: "bg-track",
 };
 
-function Result({ sessionId, onAgain }: { sessionId: string; onAgain: () => void }) {
+function Result({ sessionId, onAgain, onReview }: { sessionId: string; onAgain: () => void; onReview: () => void }) {
   const data = useMiniSessionData(sessionId);
-  const router = useRouter();
 
   if (!data) return <Loading />;
   if (data.status !== "completed") {
@@ -304,13 +314,74 @@ function Result({ sessionId, onAgain }: { sessionId: string; onAgain: () => void
         </div>
       </div>
       <div className="grid grid-cols-2 gap-1.5">
-        <button type="button" onClick={() => router.push(`/sesi/${sessionId}/hasil`)} className={ghostButton}>
+        <button type="button" onClick={onReview} className={ghostButton}>
           <ScrollText size={14} /> Pembahasan
         </button>
         <button type="button" onClick={onAgain} className={primaryButton}>
           <RotateCcw size={14} /> Main lagi
         </button>
       </div>
+    </div>
+  );
+}
+
+function Review({ sessionId, onBack }: { sessionId: string; onBack: () => void }) {
+  const [items, setItems] = useState<MiniReviewItem[] | null>(null);
+  const [, startLoading] = useTransition();
+  useEffect(() => {
+    startLoading(async () => setItems(await loadMiniReview(sessionId)));
+  }, [sessionId]);
+
+  if (!items) return <Loading />;
+  const letters = ["A", "B", "C", "D", "E"];
+
+  return (
+    <div className="flex h-full flex-col gap-2">
+      <div className="flex items-center gap-2">
+        <button type="button" onClick={onBack} aria-label="Kembali" className={`${ghostButton} px-2`}>
+          <ArrowLeft size={14} />
+        </button>
+        <span className="text-[11px] tracking-wide text-subtle uppercase">Pembahasan · {items.length} soal</span>
+      </div>
+      <ol className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-0.5">
+        {items.map((item, index) => (
+          <li key={item.questionId} className="rounded-lg border border-line p-2.5">
+            <p className="mb-1 text-[11px] text-subtle">
+              {index + 1}. {item.subject} · {item.topic}
+            </p>
+            <p className="mb-2 text-[13px] leading-5 whitespace-pre-line text-ink">{item.prompt}</p>
+            <ul className="space-y-1">
+              {item.options.map((option, oi) => {
+                const correct = item.type === "objective" && option.isCorrect;
+                const wrongChoice = item.type === "objective" && option.chosen && !option.isCorrect;
+                return (
+                  <li
+                    key={oi}
+                    className={`flex items-start gap-1.5 rounded-md border px-2 py-1 text-[12px] ${
+                      correct
+                        ? "border-success/40 bg-success/10"
+                        : wrongChoice
+                          ? "border-danger/40 bg-danger/10"
+                          : option.chosen
+                            ? "border-primary/40 bg-primary-soft"
+                            : "border-transparent"
+                    }`}
+                  >
+                    <span className="text-subtle">{letters[oi]}.</span>
+                    <span className="min-w-0 flex-1 whitespace-pre-line text-ink">{option.label}</span>
+                    {correct && <Check size={12} className="mt-0.5 shrink-0 text-success" />}
+                    {option.score != null && <span className="shrink-0 text-[11px] text-muted tabular-nums">+{option.score}</span>}
+                  </li>
+                );
+              })}
+            </ul>
+            <p className="mt-2 rounded-md bg-canvas px-2 py-1.5 text-[12px] leading-5 whitespace-pre-line text-ink">
+              {item.explanation ?? "Belum ada pembahasan tertulis."}
+            </p>
+            <AiExplain questionId={item.questionId} hasExplanation={Boolean(item.explanation)} compact />
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }
