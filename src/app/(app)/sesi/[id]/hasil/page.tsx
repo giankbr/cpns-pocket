@@ -155,29 +155,19 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
       )}
 
       <Card className="col-span-12">
-        <CardHeader icon={CircleDashed} title="Pembahasan" description="Kunci jawaban dan penjelasan tiap soal" />
+        <CardHeader icon={CircleDashed} title="Pembahasan" description="Buka tiap soal untuk melihat kunci dan penjelasannya" />
         <ol className="divide-y divide-line p-4">
           {questions.map((question, index) => {
             const item = feedbackById.get(question.id);
             const chosen = answerById.get(question.id)?.option_id ?? null;
             const keys = new Map(item?.options.map((option) => [option.id, option]));
-            const verdict = question.type === "objective" && chosen ? keys.get(chosen)?.is_correct : undefined;
 
             return (
               <li key={question.id} className="py-4">
-                <details className="group" open={verdict === false}>
+                {/* Collapsed by default: the answer is hidden until the user opens the question. */}
+                <details className="group">
                   <summary className="flex cursor-pointer list-none items-start gap-3">
-                    <span
-                      className={`grid size-7 shrink-0 place-items-center rounded-md text-xs tabular-nums ${
-                        verdict === true
-                          ? "bg-success/10 text-success"
-                          : verdict === false
-                            ? "bg-danger/10 text-danger"
-                            : chosen
-                              ? "bg-primary-soft text-primary"
-                              : "bg-canvas text-subtle"
-                      }`}
-                    >
+                    <span className="grid size-7 shrink-0 place-items-center rounded-md bg-canvas text-xs text-subtle tabular-nums">
                       {index + 1}
                     </span>
                     <span className="min-w-0 flex-1 text-sm leading-6 text-ink">
@@ -185,6 +175,7 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
                       <span className="text-xs text-subtle">
                         {subjectStyle[question.subject].short} · {question.topic}
                         {!chosen && " · tidak dijawab"}
+                        <span className="text-primary group-open:hidden"> · lihat jawaban</span>
                       </span>
                     </span>
                   </summary>

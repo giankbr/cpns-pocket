@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Check, Flag, LoaderCircle, Play, RotateCcw, ScrollText } from "lucide-react";
+import { ArrowLeft, Check, Eye, Flag, LoaderCircle, Play, RotateCcw, ScrollText } from "lucide-react";
 import { AiExplain } from "@/components/session/ai-explain";
 import { useEffect, useState, useTransition } from "react";
 import { useShallow } from "zustand/react/shallow";
@@ -325,6 +325,63 @@ function Result({ sessionId, onAgain, onReview }: { sessionId: string; onAgain: 
   );
 }
 
+const reviewLetters = ["A", "B", "C", "D", "E"];
+
+/** One reviewed question. The key and explanation stay hidden until the user asks. */
+function MiniReviewRow({ item, index }: { item: MiniReviewItem; index: number }) {
+  const [revealed, setRevealed] = useState(false);
+  return (
+    <li className="rounded-lg border border-line p-2.5">
+      <p className="mb-1 text-[11px] text-subtle">
+        {index + 1}. {item.subject} · {item.topic}
+      </p>
+      <p className="mb-2 text-[13px] leading-5 whitespace-pre-line text-ink">{item.prompt}</p>
+      <ul className="space-y-1">
+        {item.options.map((option, oi) => {
+          const correct = revealed && item.type === "objective" && option.isCorrect;
+          const wrongChoice = revealed && item.type === "objective" && option.chosen && !option.isCorrect;
+          return (
+            <li
+              key={oi}
+              className={`flex items-start gap-1.5 rounded-md border px-2 py-1 text-[12px] ${
+                correct
+                  ? "border-success/40 bg-success/10"
+                  : wrongChoice
+                    ? "border-danger/40 bg-danger/10"
+                    : option.chosen
+                      ? "border-primary/40 bg-primary-soft"
+                      : "border-transparent"
+              }`}
+            >
+              <span className="text-subtle">{reviewLetters[oi]}.</span>
+              <span className="min-w-0 flex-1 whitespace-pre-line text-ink">{option.label}</span>
+              {option.chosen && !revealed && <span className="shrink-0 text-[10px] text-primary">pilihanmu</span>}
+              {correct && <Check size={12} className="mt-0.5 shrink-0 text-success" />}
+              {revealed && option.score != null && <span className="shrink-0 text-[11px] text-muted tabular-nums">+{option.score}</span>}
+            </li>
+          );
+        })}
+      </ul>
+      {revealed ? (
+        <>
+          <p className="mt-2 rounded-md bg-canvas px-2 py-1.5 text-[12px] leading-5 whitespace-pre-line text-ink">
+            {item.explanation ?? "Belum ada pembahasan tertulis."}
+          </p>
+          <AiExplain questionId={item.questionId} hasExplanation={Boolean(item.explanation)} compact />
+        </>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setRevealed(true)}
+          className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-line px-2 py-1 text-[11px] text-muted transition-colors duration-150 hover:border-primary hover:text-primary"
+        >
+          <Eye size={12} /> Lihat jawaban &amp; pembahasan
+        </button>
+      )}
+    </li>
+  );
+}
+
 function Review({ sessionId, onBack }: { sessionId: string; onBack: () => void }) {
   const [items, setItems] = useState<MiniReviewItem[] | null>(null);
   const [, startLoading] = useTransition();
@@ -333,7 +390,6 @@ function Review({ sessionId, onBack }: { sessionId: string; onBack: () => void }
   }, [sessionId]);
 
   if (!items) return <Loading />;
-  const letters = ["A", "B", "C", "D", "E"];
 
   return (
     <div className="flex h-full flex-col gap-2">
@@ -345,41 +401,7 @@ function Review({ sessionId, onBack }: { sessionId: string; onBack: () => void }
       </div>
       <ol className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-0.5">
         {items.map((item, index) => (
-          <li key={item.questionId} className="rounded-lg border border-line p-2.5">
-            <p className="mb-1 text-[11px] text-subtle">
-              {index + 1}. {item.subject} · {item.topic}
-            </p>
-            <p className="mb-2 text-[13px] leading-5 whitespace-pre-line text-ink">{item.prompt}</p>
-            <ul className="space-y-1">
-              {item.options.map((option, oi) => {
-                const correct = item.type === "objective" && option.isCorrect;
-                const wrongChoice = item.type === "objective" && option.chosen && !option.isCorrect;
-                return (
-                  <li
-                    key={oi}
-                    className={`flex items-start gap-1.5 rounded-md border px-2 py-1 text-[12px] ${
-                      correct
-                        ? "border-success/40 bg-success/10"
-                        : wrongChoice
-                          ? "border-danger/40 bg-danger/10"
-                          : option.chosen
-                            ? "border-primary/40 bg-primary-soft"
-                            : "border-transparent"
-                    }`}
-                  >
-                    <span className="text-subtle">{letters[oi]}.</span>
-                    <span className="min-w-0 flex-1 whitespace-pre-line text-ink">{option.label}</span>
-                    {correct && <Check size={12} className="mt-0.5 shrink-0 text-success" />}
-                    {option.score != null && <span className="shrink-0 text-[11px] text-muted tabular-nums">+{option.score}</span>}
-                  </li>
-                );
-              })}
-            </ul>
-            <p className="mt-2 rounded-md bg-canvas px-2 py-1.5 text-[12px] leading-5 whitespace-pre-line text-ink">
-              {item.explanation ?? "Belum ada pembahasan tertulis."}
-            </p>
-            <AiExplain questionId={item.questionId} hasExplanation={Boolean(item.explanation)} compact />
-          </li>
+          <MiniReviewRow key={item.questionId} item={item} index={index} />
         ))}
       </ol>
     </div>
